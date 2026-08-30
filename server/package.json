@@ -1,0 +1,22 @@
+{
+  "name": "eeroom-server",
+  "version": "1.0.0",
+  "description": "EERoom backend API - Node.js/Express server handling auth and project persistence via Supabase",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "@supabase/supabase-js": "^2.45.0",
+    "jsonwebtoken": "^9.0.2",
+    "crypto": "^1.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
