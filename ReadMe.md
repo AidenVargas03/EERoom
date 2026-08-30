@@ -29,14 +29,13 @@ npm install
 npm run dev              # http://localhost:5173
 ```
 
-**Database:** run the SQL in the Milestone 4 handoff doc's Section 4 against
-your Supabase project's SQL editor before starting the server.
+**Database:** 
 
-## Build progress (matches handoff doc's recommended order)
+## Build progress 
 
-- [x] 1. Project scaffolding
+- [ ] 1. Project scaffolding
 - [ ] 2. Supabase project + schema
-- [x] 3. Auth: register/login/logout (backend + frontend wired; needs a live
+- [ ] 3. Auth: register/login/logout (backend + frontend wired; needs a live
       Supabase project to actually test end-to-end)
 - [ ] 4. Dashboard shell + project save/load/delete
 - [ ] 5. Ohm's Law Calculator
