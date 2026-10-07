@@ -56,7 +56,31 @@ export async function register(req, res) {
     });
 
     if (dbError) {
-      return res.status(500).json({ error: dbError.message });
+      // Compensating rollback. Nothing above is transactional: the auth user
+      // from step 1 already exists, so if step 2 fails we have to undo it by
+      // hand. Without this the account is left able to log in (login only
+      // checks Supabase Auth) but unable to save anything (projects.user_id
+      // has no row to reference), and the email can never be re-registered
+      // because step 1 would then fail with "already registered".
+      console.error("Mirror row insert failed, rolling back auth user:", dbError.message);
+
+      const { error: rollbackError } = await supabase.auth.admin.deleteUser(
+        authData.user.id
+      );
+
+      if (rollbackError) {
+        // The rollback itself failed, so an orphaned auth user now exists.
+        // Log the id so it can be cleaned up by hand in the Supabase console.
+        console.error(
+          "ROLLBACK FAILED - orphaned auth user:",
+          authData.user.id,
+          rollbackError.message
+        );
+      }
+
+      // Deliberately generic: dbError.message is a raw Postgres error that
+      // would leak our table and column names to the browser.
+      return res.status(500).json({ error: "Registration failed. Please try again." });
     }
 
     return res.status(201).json({ message: "User registered successfully." });

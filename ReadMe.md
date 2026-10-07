@@ -1,7 +1,7 @@
 # EERoom
 
 Browser-based electrical engineering simulation platform.
-CST-451 Senior Project — Milestone 4 (Coding and Testing, 1st Code Iteration).
+CST-452 Senior Project II — Milestone 4 (Coding and Testing, 2nd Code Iteration).
 
 ## Repo structure
 
@@ -29,15 +29,19 @@ npm install
 npm run dev              # http://localhost:5173
 ```
 
-**Database:** run the SQL in the Milestone 4 handoff doc's Section 4 against
-your Supabase project's SQL editor before starting the server.
+**Database:** Supabase (PostgreSQL 15). Create a Supabase project, open the
+SQL Editor, and run `server/db/schema.sql` to create the `users` and
+`projects` tables. Then copy the project URL and service role key from
+Supabase -> Project Settings -> API into `server/.env` (copy `.env.example`
+first). User accounts are managed by Supabase Auth; the `users` table mirrors
+each account's UUID so `projects.user_id` has a row to reference.
 
 ## Build progress (matches handoff doc's recommended order)
 
 - [x] 1. Project scaffolding
-- [ ] 2. Supabase project + schema
-- [x] 3. Auth: register/login/logout (backend + frontend wired; needs a live
-      Supabase project to actually test end-to-end)
+- [x] 2. Supabase project + schema
+- [x] 3. Auth: register/login/logout (verified end-to-end against the live
+      Supabase project)
 - [ ] 4. Dashboard shell + project save/load/delete
 - [ ] 5. Ohm's Law Calculator
 - [ ] 6. Waveform Visualizer
