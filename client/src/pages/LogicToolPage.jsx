@@ -50,6 +50,7 @@ import { useEffect, useState } from "react";
 // https://reactrouter.com/en/main/hooks/use-search-params
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createProject, getProject, updateProject } from "../api/projects.js";
+import ShareButton from "../components/ShareButton.jsx";
 import {
   GATE_TYPES,
   evaluateCircuit,
@@ -652,6 +653,10 @@ export default function LogicToolPage() {
         {saveStatus === "error" && (
           <p className="mt-2 text-sm text-red-600">{saveError}</p>
         )}
+
+        <div className="mt-4 pt-4 border-t border-slate-200">
+          <ShareButton projectId={projectId} />
+        </div>
       </div>
     </div>
   );

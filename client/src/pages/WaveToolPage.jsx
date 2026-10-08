@@ -27,7 +27,7 @@
  * -----------------------------------------------------------------------
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 // useSearchParams reads and writes the query string the way useState reads
 // and writes component state; its setter takes the same options object as
 // navigate(), which is where { replace: true } below comes from.
@@ -35,6 +35,8 @@ import { useEffect, useRef, useState } from "react";
 // https://reactrouter.com/en/main/hooks/use-search-params
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createProject, getProject, updateProject } from "../api/projects.js";
+import ShareButton from "../components/ShareButton.jsx";
+import WaveformCanvas, { formatTime } from "../components/WaveformCanvas.jsx";
 import {
   WAVEFORM_TYPES,
   generateSamples,
@@ -68,157 +70,10 @@ function num(value, fallback) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-/** Seconds -> a short label with a sensible unit for the time axis. */
-function formatTime(seconds) {
-  if (seconds === 0) return "0";
-  const abs = Math.abs(seconds);
-  if (abs < 1e-3) return `${(seconds * 1e6).toFixed(0)} us`;
-  if (abs < 1) return `${(seconds * 1e3).toFixed(abs < 0.01 ? 2 : 1)} ms`;
-  return `${seconds.toFixed(2)} s`;
-}
-
-/**
- * Draw both traces, the grid and the axis labels.
- *
- * Kept outside the component because it touches no React state - it is a
- * function of (canvas, data), which also makes it easy to reason about.
- */
-function drawWaveform(canvas, { smooth, sampled, duration, vMin, vMax, aliased }) {
-  const ctx = canvas.getContext("2d");
-  const cssWidth = canvas.clientWidth;
-  const cssHeight = canvas.clientHeight;
-  if (cssWidth === 0 || cssHeight === 0) return;
-
-  // A canvas has a CSS size and a separate pixel buffer size. Left equal on
-  // a high-DPI screen the buffer is stretched and everything looks soft, so
-  // size the buffer by devicePixelRatio and scale the context back, which
-  // lets the drawing code below keep working in CSS pixels.
-  // Source: MDN, "Correcting resolution in a <canvas>" -
-  // https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
-  const scale = window.devicePixelRatio || 1;
-  canvas.width = Math.floor(cssWidth * scale);
-  canvas.height = Math.floor(cssHeight * scale);
-  ctx.setTransform(1, 0, 0, 1, 0, 0); // undo any previous scale before re-applying
-  ctx.scale(scale, scale);
-  ctx.clearRect(0, 0, cssWidth, cssHeight);
-
-  const pad = { left: 58, right: 14, top: 14, bottom: 34 };
-  const plotW = cssWidth - pad.left - pad.right;
-  const plotH = cssHeight - pad.top - pad.bottom;
-  if (plotW <= 0 || plotH <= 0) return;
-
-  // Data coordinates -> pixel coordinates. Canvas y grows downward, hence
-  // the subtraction in yOf.
-  const xOf = (t) => pad.left + (duration > 0 ? (t / duration) * plotW : 0);
-  const span = vMax - vMin;
-  const yOf = (v) => pad.top + plotH - (span > 0 ? ((v - vMin) / span) * plotH : plotH / 2);
-
-  // ---- plot background and grid ----------------------------------------
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(pad.left, pad.top, plotW, plotH);
-
-  ctx.strokeStyle = "#e2e8f0"; // slate-200
-  ctx.lineWidth = 1;
-  ctx.font = "11px system-ui, sans-serif";
-  ctx.fillStyle = "#64748b"; // slate-500
-
-  const H_DIVISIONS = 4;
-  ctx.textAlign = "right";
-  ctx.textBaseline = "middle";
-  for (let i = 0; i <= H_DIVISIONS; i++) {
-    const v = vMax - (i / H_DIVISIONS) * span;
-    const y = yOf(v);
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(pad.left + plotW, y);
-    ctx.stroke();
-    ctx.fillText(`${v.toFixed(2)} V`, pad.left - 6, y);
-  }
-
-  const V_DIVISIONS = 6;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "top";
-  for (let i = 0; i <= V_DIVISIONS; i++) {
-    const t = (i / V_DIVISIONS) * duration;
-    const x = xOf(t);
-    ctx.beginPath();
-    ctx.moveTo(x, pad.top);
-    ctx.lineTo(x, pad.top + plotH);
-    ctx.stroke();
-    ctx.fillText(formatTime(t), x, pad.top + plotH + 6);
-  }
-
-  // ---- zero volts, emphasised when it is inside the plotted range ------
-  if (vMin < 0 && vMax > 0) {
-    ctx.strokeStyle = "#94a3b8"; // slate-400
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(pad.left, yOf(0));
-    ctx.lineTo(pad.left + plotW, yOf(0));
-    ctx.stroke();
-  }
-
-  // Clip the traces so a large DC offset cannot draw outside the axes.
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(pad.left, pad.top, plotW, plotH);
-  ctx.clip();
-
-  // ---- the signal itself -----------------------------------------------
-  if (smooth.length > 1) {
-    ctx.strokeStyle = "#2563eb"; // blue-600
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    smooth.forEach((s, i) => {
-      const x = xOf(s.t);
-      const y = yOf(s.v);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-  }
-
-  // ---- what the chosen sample rate would actually capture ---------------
-  if (sampled.length > 1) {
-    ctx.strokeStyle = aliased ? "#dc2626" : "#f59e0b"; // red-600 when aliased, else amber-500
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    sampled.forEach((s, i) => {
-      const x = xOf(s.t);
-      const y = yOf(s.v);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-
-    // Individual sample points, but only while they are sparse enough to
-    // read. Past that they merge into a solid band and add nothing.
-    if (sampled.length <= 200) {
-      ctx.fillStyle = aliased ? "#dc2626" : "#f59e0b";
-      for (const s of sampled) {
-        ctx.beginPath();
-        ctx.arc(xOf(s.t), yOf(s.v), 2.5, 0, 2 * Math.PI);
-        ctx.fill();
-      }
-    }
-  }
-
-  ctx.restore();
-
-  // ---- axes drawn last so they sit on top -------------------------------
-  ctx.strokeStyle = "#475569"; // slate-600
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(pad.left, pad.top);
-  ctx.lineTo(pad.left, pad.top + plotH);
-  ctx.lineTo(pad.left + plotW, pad.top + plotH);
-  ctx.stroke();
-}
 
 export default function WaveToolPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const canvasRef = useRef(null);
 
   const [projectId, setProjectId] = useState(searchParams.get("project"));
   const [projectName, setProjectName] = useState("");
@@ -297,45 +152,18 @@ export default function WaveToolPage() {
   const duration = frequency === 0 ? 1 : cycles / Math.abs(frequency);
 
   const signal = { type: controls.type, amplitude, frequency, phase, offset };
+  // Still derived here, because the readouts below need the samples even
+  // though the drawing is now the canvas component's job.
   const smooth = generateSamples({
     ...signal,
     duration,
-    sampleRate: SMOOTH_SAMPLE_COUNT / duration,
+    sampleRate: duration > 0 ? 1200 / duration : 1,
   });
-  const sampled = generateSamples({ ...signal, duration, sampleRate });
   const aliased = isAliased(frequency, sampleRate);
-
-  // Scale the vertical axis to the signal, with 10% headroom. A flat line
-  // has no range of its own, so give it an arbitrary one to sit inside.
   const range = voltageRange(smooth);
-  let vMin = range.min;
-  let vMax = range.max;
-  if (vMax - vMin < 1e-9) {
-    vMin -= 1;
-    vMax += 1;
-  } else {
-    const headroom = (vMax - vMin) * 0.1;
-    vMin -= headroom;
-    vMax += headroom;
-  }
 
   const signalRms = rms(smooth);
   const peakToPeak = range.max - range.min;
-
-  // ---- redraw whenever the picture changes, and on resize ---------------
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || loading) return;
-
-    const render = () =>
-      drawWaveform(canvas, { smooth, sampled, duration, vMin, vMax, aliased });
-
-    render();
-    // The canvas is sized in CSS percentages, so a window resize changes its
-    // pixel buffer and wipes the drawing. Redraw on resize.
-    window.addEventListener("resize", render);
-    return () => window.removeEventListener("resize", render);
-  });
 
   async function handleSave() {
     setSaveStatus("saving");
@@ -469,7 +297,15 @@ export default function WaveToolPage() {
         )}
 
         <div className="border border-slate-200 rounded-md bg-slate-50 p-2 mb-4">
-          <canvas ref={canvasRef} className="w-full" style={{ height: "320px" }} />
+          <WaveformCanvas
+            type={controls.type}
+            amplitude={amplitude}
+            frequency={frequency}
+            phase={phase}
+            offset={offset}
+            duration={duration}
+            sampleRate={sampleRate}
+          />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3 mb-6">
@@ -510,6 +346,10 @@ export default function WaveToolPage() {
         {saveStatus === "error" && (
           <p className="mt-2 text-sm text-red-600">{saveError}</p>
         )}
+
+        <div className="mt-4 pt-4 border-t border-slate-200">
+          <ShareButton projectId={projectId} />
+        </div>
       </div>
     </div>
   );

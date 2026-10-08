@@ -120,8 +120,17 @@ export async function deleteProject(req, res) {
 }
 
 /**
- * POST /projects/:id/share — generate (or return existing) a shareable
- * read-only token for this project.
+ * POST /projects/:id/share — return this project's shareable read-only
+ * token, creating one the first time it is asked for.
+ *
+ * Existing tokens are reused rather than replaced. An earlier version
+ * generated a new token on every call, which silently broke any link
+ * already handed out: press Share twice and whoever had the first link
+ * gets a 404, with nothing to tell either party why.
+ *
+ * A project that was previously shared and then un-shared is the one
+ * case that does get a fresh token. Reviving the old one would restore
+ * access that was deliberately revoked.
  *
  * Token generation approach: crypto.randomBytes(32).toString("hex")
  * gives a 64-character random hex string — far too large to brute-force
@@ -131,6 +140,24 @@ export async function deleteProject(req, res) {
  */
 export async function generateShareLink(req, res) {
   const { id } = req.params;
+
+  // Look before writing. The ownership filter is applied here and again
+  // on the update below, so neither path can touch another user's row.
+  const { data: existing, error: lookupError } = await supabase
+    .from("projects")
+    .select("share_token, is_shared")
+    .eq("project_id", id)
+    .eq("user_id", req.user.userId)
+    .single();
+
+  if (lookupError || !existing) {
+    return res.status(404).json({ error: "Project not found." });
+  }
+
+  // Already shared: hand back the same token so existing links keep working.
+  if (existing.share_token && existing.is_shared) {
+    return res.status(200).json({ shareToken: existing.share_token });
+  }
 
   const shareToken = crypto.randomBytes(32).toString("hex");
 
@@ -142,8 +169,10 @@ export async function generateShareLink(req, res) {
     .select("share_token")
     .single();
 
+  // The row was confirmed to exist a moment ago, so a failure here is a
+  // write problem rather than a missing project - a 500, not a 404.
   if (error || !data) {
-    return res.status(404).json({ error: "Project not found." });
+    return res.status(500).json({ error: "Could not create a share link." });
   }
 
   return res.status(200).json({ shareToken: data.share_token });
