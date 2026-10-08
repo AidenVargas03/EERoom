@@ -3,7 +3,7 @@
  * -----------------------------------------------------------------------
  * Implements the actual logic behind /auth/register, /auth/login, and
  * /auth/reset-password. Supabase Auth handles password hashing (bcrypt)
- * and storage for us — we don't touch raw passwords or write our own
+ * and storage for us, so we don't touch raw passwords or write our own
  * hashing code, which is the safer, industry-standard approach.
  *
  * Note: Supabase's built-in `auth.users` table is separate from our own
@@ -50,7 +50,7 @@ export async function register(req, res) {
       email,
       full_name: fullName || null,
       // password_hash column exists in the schema for completeness, but
-      // Supabase Auth is the actual source of truth for credentials —
+      // Supabase Auth is the actual source of truth for credentials, so
       // we don't duplicate the real hash here.
       password_hash: "managed_by_supabase_auth",
     });

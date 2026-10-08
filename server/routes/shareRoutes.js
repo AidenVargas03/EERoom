@@ -1,7 +1,7 @@
 /**
  * routes/shareRoutes.js
  * -----------------------------------------------------------------------
- * GET /share/:token — public, read-only. No requireAuth here on purpose:
+ * GET /share/:token - public, read-only. No requireAuth here on purpose:
  * anyone with the link (logged in or not) should be able to view a
  * shared project, per the "Shareable read-only project URLs" MVP
  * requirement.

@@ -16,7 +16,7 @@
 import crypto from "crypto";
 import { supabase } from "../config/supabaseClient.js";
 
-/** GET /projects — list all projects owned by the logged-in user */
+/** GET /projects - list all projects owned by the logged-in user */
 export async function getAllProjects(req, res) {
   const { data, error } = await supabase
     .from("projects")
@@ -29,10 +29,10 @@ export async function getAllProjects(req, res) {
 }
 
 /**
- * POST /projects — create a new project
+ * POST /projects - create a new project
  * Body: { name, tool_type, project_data }
  * tool_type must be one of 'ohm' | 'logic' | 'wave' (enforced by the
- * CHECK constraint in the DB schema too — this is a friendlier
+ * CHECK constraint in the DB schema too. This is a friendlier
  * pre-check so the client gets a clear 400 instead of a raw DB error).
  */
 export async function createProject(req, res) {
@@ -61,7 +61,7 @@ export async function createProject(req, res) {
   return res.status(201).json(data);
 }
 
-/** GET /projects/:id — load one project, only if it belongs to this user */
+/** GET /projects/:id - load one project, only if it belongs to this user */
 export async function getProjectById(req, res) {
   const { id } = req.params;
 
@@ -78,7 +78,7 @@ export async function getProjectById(req, res) {
   return res.status(200).json(data);
 }
 
-/** PUT /projects/:id — update an existing project (name and/or project_data) */
+/** PUT /projects/:id - update an existing project (name and/or project_data) */
 export async function updateProject(req, res) {
   const { id } = req.params;
   const { name, project_data } = req.body;
@@ -103,7 +103,7 @@ export async function updateProject(req, res) {
   return res.status(200).json(data);
 }
 
-/** DELETE /projects/:id — delete a project owned by this user */
+/** DELETE /projects/:id - delete a project owned by this user */
 export async function deleteProject(req, res) {
   const { id } = req.params;
 
@@ -120,7 +120,7 @@ export async function deleteProject(req, res) {
 }
 
 /**
- * POST /projects/:id/share — return this project's shareable read-only
+ * POST /projects/:id/share - return this project's shareable read-only
  * token, creating one the first time it is asked for.
  *
  * Existing tokens are reused rather than replaced. An earlier version
@@ -133,7 +133,7 @@ export async function deleteProject(req, res) {
  * access that was deliberately revoked.
  *
  * Token generation approach: crypto.randomBytes(32).toString("hex")
- * gives a 64-character random hex string — far too large to brute-force
+ * gives a 64-character random hex string, far too large to brute-force
  * guess, and Node's built-in `crypto` module means no extra dependency.
  * Source: Node.js official crypto docs -
  * https://nodejs.org/api/crypto.html#cryptorandombytessize-callback

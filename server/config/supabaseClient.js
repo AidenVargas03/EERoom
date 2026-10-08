@@ -29,7 +29,7 @@
  * needs keeping alive between requests.
  *
  * Source pattern reference: this initialization follows Supabase's own
- * "Server-side/Node quickstart" docs —
+ * "Server-side/Node quickstart" docs:
  * https://supabase.com/docs/reference/javascript/initializing
  * -----------------------------------------------------------------------
  */

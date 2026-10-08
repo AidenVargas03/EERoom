@@ -4,12 +4,12 @@
  * Entry point for the EERoom backend API.
  *
  * Responsibilities:
- *   1. Load environment variables (.env) — Supabase keys, JWT secret, port
+ *   1. Load environment variables (.env): Supabase keys, JWT secret, port
  *   2. Configure Express app-level middleware (CORS, JSON body parsing)
  *   3. Mount route modules for auth and projects
  *   4. Start the HTTP server
  *
- * This file intentionally stays thin — it should only wire things
+ * This file intentionally stays thin. It should only wire things
  * together. Actual request-handling logic lives in /controllers,
  * and route -> controller mapping lives in /routes.
  *
@@ -36,11 +36,25 @@ const PORT = process.env.PORT || 4000;
 
 // ---- Global Middleware -------------------------------------------------
 
-// Allow the Vercel-hosted frontend to call this API. In production,
-// restrict `origin` to the real deployed frontend URL instead of "*".
+// Allow the deployed frontend to call this API, and nothing else.
+//
+// CLIENT_URL may hold several origins separated by commas. That matters
+// during a domain changeover: eeroom.io and the eeroom-*.vercel.app URL
+// both need to work until DNS has settled everywhere, and with a single
+// value one of them always fails. A rejected origin shows up in the
+// browser as a request that simply never returns, which is a confusing
+// way to find out about a configuration problem.
+//
+// With nothing configured it falls back to "*", which is fine for local
+// development and must never be the case in production.
+const allowedOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "*",
+    origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
   })
 );
 
