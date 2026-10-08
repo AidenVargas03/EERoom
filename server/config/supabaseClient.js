@@ -1,15 +1,32 @@
 /**
  * config/supabaseClient.js
  * -----------------------------------------------------------------------
- * Creates a single shared Supabase client instance used by every
- * controller that needs to talk to the database (users, projects).
+ * Creates the Supabase clients used by the backend. There are two, and
+ * they are deliberately separate instances.
  *
- * We use the SERVICE ROLE key here (not the anon/public key) because
- * this client runs on the trusted backend server, not in the browser.
- * The service role key bypasses Row Level Security, so all authorization
- * checks (e.g. "does this project belong to this user?") must be done
- * explicitly in our own controller code — Supabase will not do it for us
- * on the server side the way it would for a client-side anon-key call.
+ *   supabase      - every database query (users, projects) and every
+ *                   admin auth call. Authenticates with the SERVICE ROLE
+ *                   key, which carries BYPASSRLS.
+ *   supabaseAuth  - used ONLY to sign a user in or send a password reset.
+ *
+ * Why they must be separate:
+ *
+ * supabase-js stores a session ON THE CLIENT INSTANCE after a successful
+ * signInWithPassword(). From that point the instance sends that user's
+ * access token as its Authorization header instead of the service role
+ * key, so PostgREST runs the request as the `authenticated` role rather
+ * than `service_role`. Row Level Security is enabled on both tables with
+ * no policies, so every later query from that instance is denied with
+ * "new row violates row-level security policy".
+ *
+ * This server is one long-running process, so with a single shared client
+ * one login would downgrade the client for EVERY subsequent request from
+ * EVERY user until the process restarted. Keeping sign-in on its own
+ * instance means the data client's credentials never change.
+ *
+ * persistSession and autoRefreshToken are off on both: a server has no
+ * browser storage to persist a session into, and no user session that
+ * needs keeping alive between requests.
  *
  * Source pattern reference: this initialization follows Supabase's own
  * "Server-side/Node quickstart" docs —
@@ -33,4 +50,23 @@ if (!supabaseUrl || !supabaseServiceKey) {
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const serverSideAuthOptions = {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+};
+
+/** Database + admin client. Must never be used to sign a user in. */
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseServiceKey,
+  serverSideAuthOptions
+);
+
+/** Sign-in / password-reset client. Must never be used for queries. */
+export const supabaseAuth = createClient(
+  supabaseUrl,
+  supabaseServiceKey,
+  serverSideAuthOptions
+);

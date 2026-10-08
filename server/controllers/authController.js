@@ -14,7 +14,7 @@
  */
 
 import jwt from "jsonwebtoken";
-import { supabase } from "../config/supabaseClient.js";
+import { supabase, supabaseAuth } from "../config/supabaseClient.js";
 
 /**
  * POST /auth/register
@@ -105,7 +105,7 @@ export async function login(req, res) {
     return res.status(400).json({ error: "Email and password are required." });
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabaseAuth.auth.signInWithPassword({
     email,
     password,
   });
@@ -142,7 +142,7 @@ export async function resetPassword(req, res) {
     return res.status(400).json({ error: "Email is required." });
   }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabaseAuth.auth.resetPasswordForEmail(email);
 
   if (error) {
     return res.status(400).json({ error: error.message });
