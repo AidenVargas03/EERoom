@@ -69,3 +69,5 @@ Files with an explicit source citation so far:
 - `client/src/api/client.js` — axios interceptor pattern (official docs)
 - `client/src/hooks/useAuth.jsx` — React Context/Provider pattern (official React docs)
 - `client/src/components/ProtectedRoute.jsx` — React Router v6 protected route guard (official docs)
+- `client/src/pages/DashboardPage.jsx` — Effect cleanup flag for discarding a cleaned-up fetch (official React docs)
+- `client/src/pages/OhmToolPage.jsx` — `useSearchParams` query-string state and `NavigateOptions` (official React Router docs); same Effect cleanup flag (official React docs)
