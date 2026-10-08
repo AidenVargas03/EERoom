@@ -19,6 +19,7 @@
  * -----------------------------------------------------------------------
  */
 
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import palette from "../theme.js";
 
@@ -33,11 +34,57 @@ function wavePath(cyclesPerSpan, { width, mid, amp, steps = 240, invert = false 
   return `M ${points.join(" L ")}`;
 }
 
+/** The page ruling, in CSS pixels. Must match the fine grid in index.css. */
+const PAGE_GRID = 32;
+
+/**
+ * Nudges an element so its top-left corner sits on the page's background
+ * grid, which lets the figure's frame continue the ruling behind it
+ * instead of cutting across it at a random offset.
+ *
+ * It has to be measured rather than calculated. index.css anchors the
+ * grid to the viewport with background-attachment: fixed, so a line falls
+ * every 32px from the window corner, and where this element lands depends
+ * on the window width and how the two-column layout resolves. CSS cannot
+ * ask how far it is from a viewport grid line, so we read the box and
+ * shift by the remainder.
+ *
+ * The transform is cleared before measuring, otherwise the previous nudge
+ * is included in the reading and the two feed back on each other.
+ */
+function useGridSnap() {
+  const ref = useRef(null);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  const measure = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.transform = "none";
+    const { left, top } = el.getBoundingClientRect();
+    el.style.transform = "";
+    setOffset({
+      x: -(((left % PAGE_GRID) + PAGE_GRID) % PAGE_GRID),
+      y: -(((top % PAGE_GRID) + PAGE_GRID) % PAGE_GRID),
+    });
+  }, []);
+
+  useLayoutEffect(measure, [measure]);
+
+  useEffect(() => {
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [measure]);
+
+  return [ref, { transform: `translate(${offset.x}px, ${offset.y}px)` }];
+}
+
 function AliasingFigure() {
   const width = 520;
   const height = 240;
   const mid = height / 2;
   const amp = 76;
+
+  const [frameRef, frameStyle] = useGridSnap();
 
   const trueWave = wavePath(3, { width, mid, amp });
   const aliasWave = wavePath(1, { width, mid, amp, invert: true });
@@ -52,21 +99,29 @@ function AliasingFigure() {
   return (
     <figure className="m-0">
       <svg
+        ref={frameRef}
+        style={frameStyle}
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full h-auto rounded border border-rule bg-panel/60"
+        className="w-full h-auto rounded border border-rule-strong"
         role="img"
         aria-label="A three cycle wave sampled five times. The samples also fit a one cycle wave, which is the alias."
       >
-        <g stroke={palette.grid} strokeWidth="1">
-          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <line key={`v${i}`} x1={(i * width) / 7} y1="0" x2={(i * width) / 7} y2={height} />
+        {/* An opaque plot surface with its own ruling. Leaving it
+            translucent let the page's drafting grid show through at a
+            different pitch to this one and the two fought each other.
+            Filling it solid means only one grid is ever visible. */}
+        <rect x="0" y="0" width={width} height={height} fill={palette.display} />
+
+        <g stroke={palette.displayGrid} strokeWidth="1">
+          {Array.from({ length: 9 }, (_, i) => (i * width) / 8).map((x, i) => (
+            <line key={`v${i}`} x1={x} y1="0" x2={x} y2={height} />
           ))}
-          {[0, 1, 2, 3, 4].map((i) => (
-            <line key={`h${i}`} x1="0" y1={(i * height) / 4} x2={width} y2={(i * height) / 4} />
+          {Array.from({ length: 5 }, (_, i) => (i * height) / 4).map((y, i) => (
+            <line key={`h${i}`} x1="0" y1={y} x2={width} y2={y} />
           ))}
         </g>
 
-        <line x1="0" y1={mid} x2={width} y2={mid} stroke={palette.ruleStrong} strokeWidth="1" />
+        <line x1="0" y1={mid} x2={width} y2={mid} stroke={palette.ruleStrong} strokeWidth="1.5" />
 
         <path d={trueWave} fill="none" stroke={palette.traceTrue} strokeWidth="2" />
         <path

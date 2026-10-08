@@ -423,7 +423,11 @@ export default function LogicToolPage() {
         </p>
 
         {/* ---- board ---- */}
-        <div className="border border-rule rounded-md bg-raised overflow-x-auto mb-4">
+        {/* w-fit keeps the border wrapped tight around the board. The SVG is
+            a fixed BOARD_W wide, so a full-width container shows its own
+            background in the gap to the right of the last cell. max-w-full
+            with overflow-x-auto still lets it scroll on a narrow screen. */}
+        <div className="border border-rule rounded-md bg-panel overflow-x-auto mb-4 w-fit max-w-full mx-auto">
           <svg
             width={BOARD_W}
             height={BOARD_H}

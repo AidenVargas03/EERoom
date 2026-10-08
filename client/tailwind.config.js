@@ -15,6 +15,8 @@ export default {
         ground: palette.ground,
         panel: palette.panel,
         raised: palette.raised,
+        display: palette.display,
+        "display-grid": palette.displayGrid,
         grid: palette.grid,
         rule: palette.rule,
         "rule-strong": palette.ruleStrong,

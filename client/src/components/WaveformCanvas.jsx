@@ -67,10 +67,10 @@ function drawWaveform(canvas, { smooth, sampled, duration, vMin, vMax, aliased }
   const yOf = (v) => pad.top + plotH - (span > 0 ? ((v - vMin) / span) * plotH : plotH / 2);
 
   // ---- plot background and grid ----------------------------------------
-  ctx.fillStyle = palette.panel;
+  ctx.fillStyle = palette.display;
   ctx.fillRect(pad.left, pad.top, plotW, plotH);
 
-  ctx.strokeStyle = palette.grid;
+  ctx.strokeStyle = palette.displayGrid;
   ctx.lineWidth = 1;
   ctx.font = '11px "IBM Plex Mono", ui-monospace, monospace';
   ctx.fillStyle = palette.inkMuted;

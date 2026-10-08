@@ -25,6 +25,14 @@ export const palette = {
   panel: "#16304A",
   raised: "#1D3C5A",
 
+  // Plot surface. Anything that draws a measurement (the waveform canvas,
+  // the figure on the landing page) sits on this rather than on the page
+  // ground, so a plot reads as a screen set into the drawing rather than
+  // a transparent hole in it. It is darker than the page on purpose: the
+  // trace needs to be the brightest thing inside the frame.
+  display: "#0A1A2B",
+  displayGrid: "#1C3A57",
+
   // Drafting line work. grid is the background ruling, rule is a border,
   // ruleStrong is a border that needs to be noticed.
   grid: "#22415E",
