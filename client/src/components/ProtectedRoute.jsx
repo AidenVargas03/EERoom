@@ -6,9 +6,16 @@
  *
  * Usage: <Route path="/dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>} />
  *
- * Pattern source: this is React Router v6's officially documented
- * "protected routes" approach (Navigate + Outlet-style guard component) -
- * https://reactrouter.com/en/main/start/tutorial#protected-routes
+ * Source: adapted from React Router v6's official "auth" example, which
+ * defines a RequireAuth({ children }) component that returns <Navigate>
+ * when there is no authenticated user and renders children when there is -
+ * https://github.com/remix-run/react-router/blob/365fefc90b861c51a1a9008df5aa035f2d7dc165/examples/auth/src/App.tsx
+ *
+ * Adapted rather than copied: the official example also passes
+ * state={{ from: location }} so a user can be sent back to the page they
+ * originally requested once they log in. EERoom has no return-to-intended-
+ * page behaviour, so that state is deliberately omitted and every login
+ * lands on the dashboard.
  * -----------------------------------------------------------------------
  */
 
