@@ -199,9 +199,9 @@ export default function WaveToolPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
-          <p className="text-slate-500">Loading project...</p>
+      <div className="min-h-screen p-8">
+        <div className="max-w-4xl mx-auto bg-panel rounded-lg border border-rule p-8">
+          <p className="text-ink-muted">Loading project...</p>
         </div>
       </div>
     );
@@ -217,28 +217,28 @@ export default function WaveToolPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
+    <div className="min-h-screen p-8">
+      <div className="max-w-4xl mx-auto bg-panel rounded-lg border border-rule p-8">
         <button
           onClick={() => navigate("/dashboard")}
-          className="text-sm text-slate-500 hover:underline mb-4"
+          className="text-sm text-ink-muted hover:underline mb-4"
         >
           &larr; Back to Dashboard
         </button>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Waveform Visualizer</h1>
-        <p className="text-sm text-slate-500 mb-6">
+        <h1 className="text-2xl font-bold text-ink mb-2">Waveform Visualizer</h1>
+        <p className="text-sm text-ink-muted mb-6">
           Blue is the signal. Amber is what your chosen sample rate would capture.
         </p>
 
         {loadError && (
-          <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+          <div className="mb-4 rounded-md bg-danger-surface border border-danger p-3 text-sm text-danger">
             {loadError}
           </div>
         )}
 
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-ink mb-1">
             Project name
           </label>
           <input
@@ -247,12 +247,12 @@ export default function WaveToolPage() {
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             placeholder={DEFAULT_NAME}
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
           />
         </div>
 
         <div className="mb-4">
-          <span className="block text-sm font-medium text-slate-700 mb-2">Waveform</span>
+          <span className="block text-sm font-medium text-ink mb-2">Waveform</span>
           <div className="flex flex-wrap gap-2">
             {WAVEFORM_TYPES.map((type) => (
               <button
@@ -260,8 +260,8 @@ export default function WaveToolPage() {
                 onClick={() => setControl("type", type)}
                 className={
                   controls.type === type
-                    ? "px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white capitalize"
-                    : "px-3 py-1.5 text-sm rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 capitalize"
+                    ? "px-3 py-1.5 text-sm rounded-md bg-copper text-ground capitalize"
+                    : "px-3 py-1.5 text-sm rounded-md border border-rule-strong text-ink-muted hover:bg-raised capitalize"
                 }
               >
                 {type}
@@ -273,7 +273,7 @@ export default function WaveToolPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
           {numberFields.map((field) => (
             <div key={field.key}>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-ink mb-1">
                 {field.label}
               </label>
               <input
@@ -281,14 +281,14 @@ export default function WaveToolPage() {
                 step={field.step}
                 value={controls[field.key]}
                 onChange={(e) => setControl(field.key, e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
               />
             </div>
           ))}
         </div>
 
         {aliased && (
-          <div className="mb-4 rounded-md bg-amber-50 border border-amber-300 p-3 text-sm text-amber-800">
+          <div className="mb-4 rounded-md bg-warning-surface border border-warning p-3 text-sm text-warning">
             <strong>Aliasing.</strong> A {Math.abs(frequency)} Hz signal needs a sample rate
             above {Math.abs(frequency) * 2} Hz to be captured correctly. At{" "}
             {sampleRate} Hz the red trace shows a lower frequency that is not in the
@@ -296,7 +296,7 @@ export default function WaveToolPage() {
           </div>
         )}
 
-        <div className="border border-slate-200 rounded-md bg-slate-50 p-2 mb-4">
+        <div className="border border-rule rounded-md bg-raised p-2 mb-4">
           <WaveformCanvas
             type={controls.type}
             amplitude={amplitude}
@@ -309,21 +309,21 @@ export default function WaveToolPage() {
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3 mb-6">
-          <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
-            <span className="block text-xs text-slate-500">RMS</span>
-            <span className="text-lg font-bold text-blue-600">
+          <div className="bg-raised border border-rule rounded-md p-3">
+            <span className="block text-xs text-ink-muted">RMS</span>
+            <span className="text-lg font-bold text-copper">
               {signalRms.toFixed(4)} V
             </span>
           </div>
-          <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
-            <span className="block text-xs text-slate-500">Peak to peak</span>
-            <span className="text-lg font-bold text-blue-600">
+          <div className="bg-raised border border-rule rounded-md p-3">
+            <span className="block text-xs text-ink-muted">Peak to peak</span>
+            <span className="text-lg font-bold text-copper">
               {peakToPeak.toFixed(4)} V
             </span>
           </div>
-          <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
-            <span className="block text-xs text-slate-500">Period</span>
-            <span className="text-lg font-bold text-blue-600">
+          <div className="bg-raised border border-rule rounded-md p-3">
+            <span className="block text-xs text-ink-muted">Period</span>
+            <span className="text-lg font-bold text-copper">
               {frequency === 0 ? "DC" : formatTime(1 / Math.abs(frequency))}
             </span>
           </div>
@@ -332,7 +332,7 @@ export default function WaveToolPage() {
         <button
           onClick={handleSave}
           disabled={saveStatus === "saving"}
-          className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-copper text-ground py-2 rounded-md font-medium hover:bg-copper-bright disabled:opacity-50"
         >
           {saveStatus === "saving"
             ? "Saving..."
@@ -344,10 +344,10 @@ export default function WaveToolPage() {
         </button>
 
         {saveStatus === "error" && (
-          <p className="mt-2 text-sm text-red-600">{saveError}</p>
+          <p className="mt-2 text-sm text-danger">{saveError}</p>
         )}
 
-        <div className="mt-4 pt-4 border-t border-slate-200">
+        <div className="mt-4 pt-4 border-t border-rule">
           <ShareButton projectId={projectId} />
         </div>
       </div>

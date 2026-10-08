@@ -247,37 +247,37 @@ export default function OhmToolPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
-          <p className="text-slate-500">Loading project...</p>
+      <div className="min-h-screen p-8">
+        <div className="max-w-md mx-auto bg-panel rounded-lg border border-rule p-8">
+          <p className="text-ink-muted">Loading project...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
+    <div className="min-h-screen p-8">
+      <div className="max-w-md mx-auto bg-panel rounded-lg border border-rule p-8">
         <button
           onClick={() => navigate("/dashboard")}
-          className="text-sm text-slate-500 hover:underline mb-4"
+          className="text-sm text-ink-muted hover:underline mb-4"
         >
           &larr; Back to Dashboard
         </button>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Ohm's Law &amp; Power Calculator</h1>
-        <p className="text-sm text-slate-500 mb-6">
+        <h1 className="text-2xl font-bold text-ink mb-2">Ohm's Law &amp; Power Calculator</h1>
+        <p className="text-sm text-ink-muted mb-6">
           Enter any 2 values - the 3rd is calculated automatically.
         </p>
 
         {loadError && (
-          <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+          <div className="mb-4 rounded-md bg-danger-surface border border-danger p-3 text-sm text-danger">
             {loadError}
           </div>
         )}
 
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-ink mb-1">
             Project name
           </label>
           <input
@@ -286,16 +286,16 @@ export default function OhmToolPage() {
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             placeholder={DEFAULT_NAME}
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
           />
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-ink-faint">
             Leave blank to use &ldquo;{DEFAULT_NAME}&rdquo;. Max 100 characters.
           </p>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-ink mb-1">
               Voltage (V)
             </label>
             <input
@@ -304,12 +304,12 @@ export default function OhmToolPage() {
               value={solveFor === "voltage" && calculatedVoltage !== null ? calculatedVoltage.toFixed(4) : voltage}
               onChange={handleVoltageChange}
               placeholder="e.g. 12"
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-ink mb-1">
               Current (I) - Amps
             </label>
             <input
@@ -318,12 +318,12 @@ export default function OhmToolPage() {
               value={solveFor === "current" && calculatedCurrent !== null ? calculatedCurrent.toFixed(4) : current}
               onChange={handleCurrentChange}
               placeholder="e.g. 2"
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-ink mb-1">
               Resistance (R) - Ohms
             </label>
             <input
@@ -332,18 +332,18 @@ export default function OhmToolPage() {
               value={solveFor === "resistance" && calculatedResistance !== null ? calculatedResistance.toFixed(4) : resistance}
               onChange={handleResistanceChange}
               placeholder="e.g. 6"
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
             />
           </div>
         </div>
 
         {calcError && (
-          <p className="mt-4 text-sm text-red-600">{calcError}</p>
+          <p className="mt-4 text-sm text-danger">{calcError}</p>
         )}
 
-        <div className="mt-6 bg-slate-50 border border-slate-200 rounded-md p-4">
-          <span className="text-sm font-medium text-slate-700">Power (P = V x I): </span>
-          <span className="text-lg font-bold text-blue-600">
+        <div className="mt-6 bg-raised border border-rule rounded-md p-4">
+          <span className="text-sm font-medium text-ink">Power (P = V x I): </span>
+          <span className="text-lg font-bold text-copper">
             {power !== null ? `${power.toFixed(4)} W` : "-"}
           </span>
         </div>
@@ -351,7 +351,7 @@ export default function OhmToolPage() {
         <button
           onClick={handleSave}
           disabled={power === null || saveStatus === "saving"}
-          className="mt-6 w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="mt-6 w-full bg-copper text-ground py-2 rounded-md font-medium hover:bg-copper-bright disabled:opacity-50"
         >
           {saveStatus === "saving"
             ? "Saving..."
@@ -363,10 +363,10 @@ export default function OhmToolPage() {
         </button>
 
         {saveStatus === "error" && (
-          <p className="mt-2 text-sm text-red-600">{saveError}</p>
+          <p className="mt-2 text-sm text-danger">{saveError}</p>
         )}
 
-        <div className="mt-4 pt-4 border-t border-slate-200">
+        <div className="mt-4 pt-4 border-t border-rule">
           <ShareButton projectId={projectId} />
         </div>
       </div>

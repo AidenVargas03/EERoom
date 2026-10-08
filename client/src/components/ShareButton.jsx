@@ -59,7 +59,7 @@ export default function ShareButton({ projectId }) {
   // Sharing needs a row in the database to attach the token to.
   if (!projectId) {
     return (
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-ink-faint">
         Save this project to create a shareable link.
       </p>
     );
@@ -70,16 +70,16 @@ export default function ShareButton({ projectId }) {
       <button
         onClick={handleShare}
         disabled={status === "sharing"}
-        className="px-3 py-1.5 text-sm rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+        className="px-3 py-1.5 text-sm rounded-md border border-rule-strong text-ink-muted hover:bg-raised disabled:opacity-50"
       >
         {status === "sharing" ? "Creating link..." : "Share read-only link"}
       </button>
 
-      {status === "error" && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {status === "error" && <p className="mt-2 text-sm text-danger">{error}</p>}
 
       {shareUrl && (
         <div className="mt-3">
-          <p className="text-xs text-slate-500 mb-1">
+          <p className="text-xs text-ink-muted mb-1">
             {status === "copied"
               ? "Link copied to your clipboard. Anyone with it can view this project, read only."
               : "Copy this link. Anyone with it can view this project, read only."}
@@ -91,7 +91,7 @@ export default function ShareButton({ projectId }) {
             // Selecting the whole link on focus makes manual copying one
             // keystroke rather than a careful drag.
             onFocus={(e) => e.target.select()}
-            className="w-full px-3 py-2 text-sm font-mono border border-slate-300 rounded-md bg-slate-50"
+            className="w-full px-3 py-2 text-sm font-mono border border-rule-strong rounded-md bg-raised"
           />
         </div>
       )}

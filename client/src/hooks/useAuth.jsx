@@ -9,8 +9,8 @@
  * Token persistence: we store the JWT in localStorage so a page refresh
  * doesn't log the user out. On first load, we check localStorage for an
  * existing token and treat the user as logged in if one is present.
- * (For MVP scope we trust the token until an API call returns 401 —
- * we don't decode/verify expiry client-side, since the backend already
+ * (For MVP scope we trust the token until an API call returns 401.
+ * We don't decode/verify expiry client-side, since the backend already
  * rejects expired tokens on every protected request.)
  *
  * Context + Provider pattern source: this follows the standard pattern

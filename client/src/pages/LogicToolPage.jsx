@@ -26,9 +26,9 @@
  *      and SVG stays crisp at any zoom, which matters for a recorded
  *      demonstration.
  *
- * react-konva is consequently unused. It is still listed in
- * client/package.json and should either be removed or kept deliberately
- * for a later iteration that restores free dragging.
+ * react-konva was therefore never used, and has been removed from
+ * client/package.json along with konva and mathjs. Restoring free
+ * dragging in a later iteration would mean adding it back.
  * ---------------------------------------------------------------------
  *
  * How it is used:
@@ -51,6 +51,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createProject, getProject, updateProject } from "../api/projects.js";
 import ShareButton from "../components/ShareButton.jsx";
+import palette from "../theme.js";
 import {
   GATE_TYPES,
   evaluateCircuit,
@@ -333,9 +334,9 @@ export default function LogicToolPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8">
-        <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-8">
-          <p className="text-slate-500">Loading project...</p>
+      <div className="min-h-screen p-8">
+        <div className="max-w-5xl mx-auto bg-panel rounded-lg border border-rule p-8">
+          <p className="text-ink-muted">Loading project...</p>
         </div>
       </div>
     );
@@ -344,29 +345,29 @@ export default function LogicToolPage() {
   const occupied = new Set(circuit.nodes.map((n) => `${n.col},${n.row}`));
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-md p-8">
+    <div className="min-h-screen p-8">
+      <div className="max-w-5xl mx-auto bg-panel rounded-lg border border-rule p-8">
         <button
           onClick={() => navigate("/dashboard")}
-          className="text-sm text-slate-500 hover:underline mb-4"
+          className="text-sm text-ink-muted hover:underline mb-4"
         >
           &larr; Back to Dashboard
         </button>
 
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Logic Gate Sandbox</h1>
-        <p className="text-sm text-slate-500 mb-6">
+        <h1 className="text-2xl font-bold text-ink mb-2">Logic Gate Sandbox</h1>
+        <p className="text-sm text-ink-muted mb-6">
           Pick a component, click a cell to place it. Click an output pin then an input
           pin to wire them. Click an input component to toggle it.
         </p>
 
         {loadError && (
-          <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+          <div className="mb-4 rounded-md bg-danger-surface border border-danger p-3 text-sm text-danger">
             {loadError}
           </div>
         )}
 
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className="block text-sm font-medium text-ink mb-1">
             Project name
           </label>
           <input
@@ -375,7 +376,7 @@ export default function LogicToolPage() {
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             placeholder={DEFAULT_NAME}
-            className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
           />
         </div>
 
@@ -390,8 +391,8 @@ export default function LogicToolPage() {
               }}
               className={
                 placing === type
-                  ? "px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white"
-                  : "px-3 py-1.5 text-sm rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50"
+                  ? "px-3 py-1.5 text-sm rounded-md bg-copper text-ground"
+                  : "px-3 py-1.5 text-sm rounded-md border border-rule-strong text-ink-muted hover:bg-raised"
               }
             >
               {type}
@@ -401,19 +402,19 @@ export default function LogicToolPage() {
           <button
             onClick={deleteSelected}
             disabled={!selectedId}
-            className="px-3 py-1.5 text-sm rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+            className="px-3 py-1.5 text-sm rounded-md border border-rule-strong text-ink-muted hover:bg-raised disabled:opacity-40"
           >
             Delete selected
           </button>
           <button
             onClick={clearBoard}
-            className="px-3 py-1.5 text-sm rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50"
+            className="px-3 py-1.5 text-sm rounded-md border border-rule-strong text-ink-muted hover:bg-raised"
           >
             Clear board
           </button>
         </div>
 
-        <p className="text-xs text-slate-500 mb-2 h-4">
+        <p className="text-xs text-ink-muted mb-2 h-4">
           {placing
             ? `Click an empty cell to place the ${placing} component. Escape to cancel.`
             : pendingWire
@@ -422,7 +423,7 @@ export default function LogicToolPage() {
         </p>
 
         {/* ---- board ---- */}
-        <div className="border border-slate-200 rounded-md bg-slate-50 overflow-x-auto mb-4">
+        <div className="border border-rule rounded-md bg-raised overflow-x-auto mb-4">
           <svg
             width={BOARD_W}
             height={BOARD_H}
@@ -440,8 +441,8 @@ export default function LogicToolPage() {
                     y={row * CELL_H}
                     width={CELL_W}
                     height={CELL_H}
-                    fill={placing && !taken ? "#eff6ff" : "#f8fafc"}
-                    stroke="#e2e8f0"
+                    fill={placing && !taken ? palette.raised : palette.panel}
+                    stroke={palette.grid}
                     onClick={() => placeAt(col, row)}
                     style={{ cursor: placing && !taken ? "pointer" : "default" }}
                   />
@@ -468,7 +469,7 @@ export default function LogicToolPage() {
                   key={`e${i}`}
                   d={`M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${pin.x - dx} ${pin.y}, ${pin.x} ${pin.y}`}
                   fill="none"
-                  stroke={live ? "#16a34a" : "#94a3b8"}
+                  stroke={live ? palette.copper : palette.rule}
                   strokeWidth={live ? 2.5 : 2}
                 />
               );
@@ -490,8 +491,8 @@ export default function LogicToolPage() {
                     width={g.w}
                     height={g.h}
                     rx={6}
-                    fill={isInput && value ? "#dcfce7" : "#ffffff"}
-                    stroke={selected || wiring ? "#2563eb" : "#475569"}
+                    fill={isInput && value ? palette.copperDim : palette.raised}
+                    stroke={selected || wiring ? palette.copper : palette.ruleStrong}
                     strokeWidth={selected || wiring ? 2.5 : 1.5}
                     onClick={() => {
                       if (isInput) {
@@ -507,7 +508,7 @@ export default function LogicToolPage() {
                     textAnchor="middle"
                     fontSize="13"
                     fontWeight="600"
-                    fill="#1e293b"
+                    fill={palette.ink}
                     style={{ pointerEvents: "none", userSelect: "none" }}
                   >
                     {node.label ? `${node.label} = ${value ? 1 : 0}` : node.type}
@@ -522,8 +523,8 @@ export default function LogicToolPage() {
                         cx={pin.x}
                         cy={pin.y}
                         r={PIN_R}
-                        fill={isFloating ? "#fef3c7" : "#ffffff"}
-                        stroke={isFloating ? "#d97706" : "#475569"}
+                        fill={isFloating ? palette.warningSurface : palette.panel}
+                        stroke={isFloating ? palette.warning : palette.ruleStrong}
                         strokeWidth={1.5}
                         onClick={() => finishWire(node.id, pin.port)}
                         style={{ cursor: pendingWire ? "pointer" : "default" }}
@@ -537,8 +538,8 @@ export default function LogicToolPage() {
                       cx={g.outputPin.x}
                       cy={g.outputPin.y}
                       r={PIN_R}
-                      fill={value ? "#16a34a" : "#ffffff"}
-                      stroke="#475569"
+                      fill={value ? palette.copper : palette.panel}
+                      stroke={palette.ruleStrong}
                       strokeWidth={1.5}
                       onClick={() => startWire(node.id)}
                       style={{ cursor: "pointer" }}
@@ -552,12 +553,12 @@ export default function LogicToolPage() {
 
         {/* ---- problems and warnings ---- */}
         {evalError && (
-          <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+          <div className="mb-4 rounded-md bg-danger-surface border border-danger p-3 text-sm text-danger">
             {evalError}
           </div>
         )}
         {problems.length > 0 && (
-          <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+          <div className="mb-4 rounded-md bg-danger-surface border border-danger p-3 text-sm text-danger">
             <ul className="list-disc list-inside space-y-1">
               {problems.map((p, i) => (
                 <li key={i}>{p}</li>
@@ -566,7 +567,7 @@ export default function LogicToolPage() {
           </div>
         )}
         {floating.length > 0 && !evalError && (
-          <div className="mb-4 rounded-md bg-amber-50 border border-amber-300 p-3 text-sm text-amber-800">
+          <div className="mb-4 rounded-md bg-warning-surface border border-warning p-3 text-sm text-warning">
             <strong>{floating.length} unconnected input pin{floating.length === 1 ? "" : "s"}</strong>{" "}
             (ringed in amber). An unconnected pin is read as logic 0, so the circuit still
             evaluates, but the result is not what the finished circuit will do.
@@ -575,10 +576,10 @@ export default function LogicToolPage() {
 
         {/* ---- expressions ---- */}
         {expressions.length > 0 && (
-          <div className="mb-4 bg-slate-50 border border-slate-200 rounded-md p-3">
-            <span className="block text-xs text-slate-500 mb-1">Boolean expression</span>
+          <div className="mb-4 bg-raised border border-rule rounded-md p-3">
+            <span className="block text-xs text-ink-muted mb-1">Boolean expression</span>
             {expressions.map((e, i) => (
-              <code key={i} className="block text-sm text-slate-800">
+              <code key={i} className="block text-sm text-ink">
                 {e}
               </code>
             ))}
@@ -587,29 +588,29 @@ export default function LogicToolPage() {
 
         {/* ---- truth table ---- */}
         <div className="mb-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 mb-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted mb-2">
             Truth table
           </h2>
           {tableError ? (
-            <div className="rounded-md bg-amber-50 border border-amber-300 p-3 text-sm text-amber-800">
+            <div className="rounded-md bg-warning-surface border border-warning p-3 text-sm text-warning">
               {tableError}
             </div>
           ) : !truthTable || truthTable.outputs.length === 0 ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-ink-muted">
               Place at least one input and one output component to generate a truth table.
             </p>
           ) : (
-            <div className="overflow-x-auto border border-slate-200 rounded-md">
+            <div className="overflow-x-auto border border-rule rounded-md">
               <table className="w-full text-sm">
-                <thead className="bg-slate-100">
+                <thead className="bg-raised">
                   <tr>
                     {truthTable.inputs.map((label) => (
-                      <th key={label} className="px-3 py-2 text-left font-semibold text-slate-700">
+                      <th key={label} className="px-3 py-2 text-left font-semibold text-ink">
                         {label}
                       </th>
                     ))}
                     {truthTable.outputs.map((label) => (
-                      <th key={label} className="px-3 py-2 text-left font-semibold text-blue-700">
+                      <th key={label} className="px-3 py-2 text-left font-semibold text-copper-bright">
                         {label}
                       </th>
                     ))}
@@ -617,14 +618,14 @@ export default function LogicToolPage() {
                 </thead>
                 <tbody>
                   {truthTable.rows.map((row, i) => (
-                    <tr key={i} className={i % 2 ? "bg-slate-50" : "bg-white"}>
+                    <tr key={i} className={i % 2 ? "bg-raised" : "bg-panel"}>
                       {row.inputs.map((bit, j) => (
-                        <td key={j} className="px-3 py-1.5 font-mono text-slate-700">
+                        <td key={j} className="px-3 py-1.5 font-mono text-ink">
                           {bit ? 1 : 0}
                         </td>
                       ))}
                       {row.outputs.map((bit, j) => (
-                        <td key={j} className="px-3 py-1.5 font-mono font-semibold text-blue-700">
+                        <td key={j} className="px-3 py-1.5 font-mono font-semibold text-copper-bright">
                           {bit ? 1 : 0}
                         </td>
                       ))}
@@ -639,7 +640,7 @@ export default function LogicToolPage() {
         <button
           onClick={handleSave}
           disabled={saveStatus === "saving"}
-          className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-copper text-ground py-2 rounded-md font-medium hover:bg-copper-bright disabled:opacity-50"
         >
           {saveStatus === "saving"
             ? "Saving..."
@@ -651,10 +652,10 @@ export default function LogicToolPage() {
         </button>
 
         {saveStatus === "error" && (
-          <p className="mt-2 text-sm text-red-600">{saveError}</p>
+          <p className="mt-2 text-sm text-danger">{saveError}</p>
         )}
 
-        <div className="mt-4 pt-4 border-t border-slate-200">
+        <div className="mt-4 pt-4 border-t border-rule">
           <ShareButton projectId={projectId} />
         </div>
       </div>

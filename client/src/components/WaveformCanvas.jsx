@@ -16,6 +16,7 @@
 
 import { useEffect, useRef } from "react";
 import { generateSamples, isAliased, voltageRange } from "../utils/waveform.js";
+import palette from "../theme.js";
 
 /** How many points to use for the smooth reference curve. */
 const SMOOTH_SAMPLE_COUNT = 1200;
@@ -66,13 +67,13 @@ function drawWaveform(canvas, { smooth, sampled, duration, vMin, vMax, aliased }
   const yOf = (v) => pad.top + plotH - (span > 0 ? ((v - vMin) / span) * plotH : plotH / 2);
 
   // ---- plot background and grid ----------------------------------------
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = palette.panel;
   ctx.fillRect(pad.left, pad.top, plotW, plotH);
 
-  ctx.strokeStyle = "#e2e8f0"; // slate-200
+  ctx.strokeStyle = palette.grid;
   ctx.lineWidth = 1;
-  ctx.font = "11px system-ui, sans-serif";
-  ctx.fillStyle = "#64748b"; // slate-500
+  ctx.font = '11px "IBM Plex Mono", ui-monospace, monospace';
+  ctx.fillStyle = palette.inkMuted;
 
   const H_DIVISIONS = 4;
   ctx.textAlign = "right";
@@ -102,7 +103,7 @@ function drawWaveform(canvas, { smooth, sampled, duration, vMin, vMax, aliased }
 
   // ---- zero volts, emphasised when it is inside the plotted range ------
   if (vMin < 0 && vMax > 0) {
-    ctx.strokeStyle = "#94a3b8"; // slate-400
+    ctx.strokeStyle = palette.ruleStrong;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(pad.left, yOf(0));
@@ -118,7 +119,7 @@ function drawWaveform(canvas, { smooth, sampled, duration, vMin, vMax, aliased }
 
   // ---- the signal itself -----------------------------------------------
   if (smooth.length > 1) {
-    ctx.strokeStyle = "#2563eb"; // blue-600
+    ctx.strokeStyle = palette.traceTrue;
     ctx.lineWidth = 2;
     ctx.beginPath();
     smooth.forEach((s, i) => {
@@ -132,7 +133,7 @@ function drawWaveform(canvas, { smooth, sampled, duration, vMin, vMax, aliased }
 
   // ---- what the chosen sample rate would actually capture ---------------
   if (sampled.length > 1) {
-    ctx.strokeStyle = aliased ? "#dc2626" : "#f59e0b"; // red-600 when aliased, else amber-500
+    ctx.strokeStyle = aliased ? palette.traceAliased : palette.copper;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     sampled.forEach((s, i) => {
@@ -146,7 +147,7 @@ function drawWaveform(canvas, { smooth, sampled, duration, vMin, vMax, aliased }
     // Individual sample points, but only while they are sparse enough to
     // read. Past that they merge into a solid band and add nothing.
     if (sampled.length <= 200) {
-      ctx.fillStyle = aliased ? "#dc2626" : "#f59e0b";
+      ctx.fillStyle = aliased ? palette.traceAliased : palette.copper;
       for (const s of sampled) {
         ctx.beginPath();
         ctx.arc(xOf(s.t), yOf(s.v), 2.5, 0, 2 * Math.PI);
@@ -158,7 +159,7 @@ function drawWaveform(canvas, { smooth, sampled, duration, vMin, vMax, aliased }
   ctx.restore();
 
   // ---- axes drawn last so they sit on top -------------------------------
-  ctx.strokeStyle = "#475569"; // slate-600
+  ctx.strokeStyle = palette.rule;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(pad.left, pad.top);

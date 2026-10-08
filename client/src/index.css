@@ -1,3 +1,86 @@
+/**
+ * index.css
+ * -----------------------------------------------------------------------
+ * Tailwind's three layers plus the page ground.
+ *
+ * The background is a drafting grid: a fine 32px ruling with a heavier
+ * line every fifth square, the way squared paper for engineering drawing
+ * is printed. It is deliberately faint. The waveform canvas and the logic
+ * board draw their own grids on top, and the two are meant to read as the
+ * same surface rather than compete.
+ * -----------------------------------------------------------------------
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    /* Tells the browser this is a dark page, so native parts it draws
+       for us (scrollbars, number input spinners, autofill) come out dark
+       instead of light. */
+    color-scheme: dark;
+
+    /* Anchor links and focus jumps land below the sticky header rather
+       than underneath it. */
+    scroll-padding-top: 5rem;
+  }
+
+  /* Form controls have no background class on them anywhere in the app,
+     so without this they keep the browser default white and sit on the
+     dark page like holes. Styling them once here beats editing every
+     input, and any utility class on an individual field still wins. */
+  input,
+  select,
+  textarea {
+    @apply bg-raised text-ink;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-ink-faint;
+  }
+
+  body {
+    @apply bg-ground text-ink font-sans antialiased;
+
+    /* Two rulings, fine over coarse. The rgba values are the grid and
+       rule colours from theme.js at low alpha; they are written out here
+       because CSS gradients cannot read JavaScript. */
+    background-image:
+      linear-gradient(to right, rgba(34, 65, 94, 0.55) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(34, 65, 94, 0.55) 1px, transparent 1px),
+      linear-gradient(to right, rgba(44, 74, 102, 0.35) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(44, 74, 102, 0.35) 1px, transparent 1px);
+    background-size:
+      160px 160px,
+      160px 160px,
+      32px 32px,
+      32px 32px;
+    background-attachment: fixed;
+  }
+
+  /* One focus style everywhere, in copper so it is visible against the
+     blue ground. Keyboard users get a ring; mouse users do not. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-copper ring-offset-2 ring-offset-ground;
+  }
+
+  /* Numbers are tabular so a readout does not shift sideways as the
+     value changes. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

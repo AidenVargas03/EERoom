@@ -39,57 +39,57 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center bg-raised">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm bg-white p-8 rounded-lg shadow-md"
+        className="w-full max-w-sm bg-panel p-8 rounded-lg border border-rule"
       >
-        <h1 className="text-2xl font-bold mb-6 text-slate-800">Create your EERoom account</h1>
+        <h1 className="text-2xl font-bold mb-6 text-ink">Create your EERoom account</h1>
 
         {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+          <div className="mb-4 text-sm text-danger bg-danger-surface border border-danger rounded p-2">
             {error}
           </div>
         )}
 
-        <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+        <label className="block text-sm font-medium text-ink mb-1">Full Name</label>
         <input
           type="text"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          className="w-full mb-4 px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full mb-4 px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
         />
 
-        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-ink mb-1">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full mb-4 px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full mb-4 px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
         />
 
-        <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+        <label className="block text-sm font-medium text-ink mb-1">Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={8}
-          className="w-full mb-6 px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full mb-6 px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
         />
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-copper text-ground py-2 rounded-md font-medium hover:bg-copper-bright disabled:opacity-50"
         >
           {isSubmitting ? "Creating account..." : "Sign Up"}
         </button>
 
-        <p className="mt-4 text-sm text-center text-slate-600">
+        <p className="mt-4 text-sm text-center text-ink-muted">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link to="/login" className="text-copper hover:underline">
             Log in
           </Link>
         </p>

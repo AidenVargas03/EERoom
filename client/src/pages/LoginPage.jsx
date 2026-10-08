@@ -38,48 +38,48 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center bg-raised">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm bg-white p-8 rounded-lg shadow-md"
+        className="w-full max-w-sm bg-panel p-8 rounded-lg border border-rule"
       >
-        <h1 className="text-2xl font-bold mb-6 text-slate-800">Log in to EERoom</h1>
+        <h1 className="text-2xl font-bold mb-6 text-ink">Log in to EERoom</h1>
 
         {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded p-2">
+          <div className="mb-4 text-sm text-danger bg-danger-surface border border-danger rounded p-2">
             {error}
           </div>
         )}
 
-        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-ink mb-1">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full mb-4 px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full mb-4 px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
         />
 
-        <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+        <label className="block text-sm font-medium text-ink mb-1">Password</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full mb-6 px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full mb-6 px-3 py-2 border border-rule-strong rounded-md focus:outline-none focus:ring-2 focus:ring-copper"
         />
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="w-full bg-copper text-ground py-2 rounded-md font-medium hover:bg-copper-bright disabled:opacity-50"
         >
           {isSubmitting ? "Logging in..." : "Log In"}
         </button>
 
-        <p className="mt-4 text-sm text-center text-slate-600">
+        <p className="mt-4 text-sm text-center text-ink-muted">
           Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
+          <Link to="/register" className="text-copper hover:underline">
             Sign up
           </Link>
         </p>

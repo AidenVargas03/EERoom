@@ -54,9 +54,9 @@ function formatDate(timestamp) {
 /** A labelled value, used for every read-only readout on this page. */
 function Readout({ label, value }) {
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
-      <span className="block text-xs text-slate-500">{label}</span>
-      <span className="text-lg font-bold text-blue-600">{value}</span>
+    <div className="bg-raised border border-rule rounded-md p-3">
+      <span className="block text-xs text-ink-muted">{label}</span>
+      <span className="text-lg font-bold text-copper">{value}</span>
     </div>
   );
 }
@@ -99,7 +99,7 @@ function WaveView({ data }) {
 
   return (
     <div>
-      <div className="border border-slate-200 rounded-md bg-slate-50 p-2 mb-4">
+      <div className="border border-rule rounded-md bg-raised p-2 mb-4">
         <WaveformCanvas {...signal} duration={duration} sampleRate={sampleRate} />
       </div>
 
@@ -113,29 +113,29 @@ function WaveView({ data }) {
       </div>
 
       <dl className="grid gap-2 sm:grid-cols-2 text-sm">
-        <div className="flex justify-between border-b border-slate-100 py-1">
-          <dt className="text-slate-500">Waveform</dt>
-          <dd className="text-slate-800 capitalize">{signal.type}</dd>
+        <div className="flex justify-between border-b border-rule py-1">
+          <dt className="text-ink-muted">Waveform</dt>
+          <dd className="text-ink capitalize">{signal.type}</dd>
         </div>
-        <div className="flex justify-between border-b border-slate-100 py-1">
-          <dt className="text-slate-500">Amplitude</dt>
-          <dd className="text-slate-800">{signal.amplitude} V peak</dd>
+        <div className="flex justify-between border-b border-rule py-1">
+          <dt className="text-ink-muted">Amplitude</dt>
+          <dd className="text-ink">{signal.amplitude} V peak</dd>
         </div>
-        <div className="flex justify-between border-b border-slate-100 py-1">
-          <dt className="text-slate-500">Frequency</dt>
-          <dd className="text-slate-800">{frequency} Hz</dd>
+        <div className="flex justify-between border-b border-rule py-1">
+          <dt className="text-ink-muted">Frequency</dt>
+          <dd className="text-ink">{frequency} Hz</dd>
         </div>
-        <div className="flex justify-between border-b border-slate-100 py-1">
-          <dt className="text-slate-500">Phase</dt>
-          <dd className="text-slate-800">{signal.phase}&deg;</dd>
+        <div className="flex justify-between border-b border-rule py-1">
+          <dt className="text-ink-muted">Phase</dt>
+          <dd className="text-ink">{signal.phase}&deg;</dd>
         </div>
-        <div className="flex justify-between border-b border-slate-100 py-1">
-          <dt className="text-slate-500">DC offset</dt>
-          <dd className="text-slate-800">{signal.offset} V</dd>
+        <div className="flex justify-between border-b border-rule py-1">
+          <dt className="text-ink-muted">DC offset</dt>
+          <dd className="text-ink">{signal.offset} V</dd>
         </div>
-        <div className="flex justify-between border-b border-slate-100 py-1">
-          <dt className="text-slate-500">Sample rate</dt>
-          <dd className="text-slate-800">{sampleRate} Hz</dd>
+        <div className="flex justify-between border-b border-rule py-1">
+          <dt className="text-ink-muted">Sample rate</dt>
+          <dd className="text-ink">{sampleRate} Hz</dd>
         </div>
       </dl>
     </div>
@@ -173,7 +173,7 @@ function LogicView({ data }) {
 
   if (problem) {
     return (
-      <div className="rounded-md bg-amber-50 border border-amber-300 p-3 text-sm text-amber-800">
+      <div className="rounded-md bg-warning-surface border border-warning p-3 text-sm text-warning">
         {problem}
       </div>
     );
@@ -188,7 +188,7 @@ function LogicView({ data }) {
       </div>
 
       {floating.length > 0 && (
-        <div className="mb-4 rounded-md bg-amber-50 border border-amber-300 p-3 text-sm text-amber-800">
+        <div className="mb-4 rounded-md bg-warning-surface border border-warning p-3 text-sm text-warning">
           <strong>
             This circuit has {floating.length} unconnected input pin
             {floating.length === 1 ? "" : "s"}.
@@ -200,10 +200,10 @@ function LogicView({ data }) {
       )}
 
       {expressions.length > 0 && (
-        <div className="mb-4 bg-slate-50 border border-slate-200 rounded-md p-3">
-          <span className="block text-xs text-slate-500 mb-1">Boolean expression</span>
+        <div className="mb-4 bg-raised border border-rule rounded-md p-3">
+          <span className="block text-xs text-ink-muted mb-1">Boolean expression</span>
           {expressions.map((e, i) => (
-            <code key={i} className="block text-sm text-slate-800">
+            <code key={i} className="block text-sm text-ink">
               {e}
             </code>
           ))}
@@ -211,17 +211,17 @@ function LogicView({ data }) {
       )}
 
       {truthTable && truthTable.outputs.length > 0 && (
-        <div className="overflow-x-auto border border-slate-200 rounded-md">
+        <div className="overflow-x-auto border border-rule rounded-md">
           <table className="w-full text-sm">
-            <thead className="bg-slate-100">
+            <thead className="bg-raised">
               <tr>
                 {truthTable.inputs.map((label) => (
-                  <th key={label} className="px-3 py-2 text-left font-semibold text-slate-700">
+                  <th key={label} className="px-3 py-2 text-left font-semibold text-ink">
                     {label}
                   </th>
                 ))}
                 {truthTable.outputs.map((label) => (
-                  <th key={label} className="px-3 py-2 text-left font-semibold text-blue-700">
+                  <th key={label} className="px-3 py-2 text-left font-semibold text-copper-bright">
                     {label}
                   </th>
                 ))}
@@ -229,14 +229,14 @@ function LogicView({ data }) {
             </thead>
             <tbody>
               {truthTable.rows.map((row, i) => (
-                <tr key={i} className={i % 2 ? "bg-slate-50" : "bg-white"}>
+                <tr key={i} className={i % 2 ? "bg-raised" : "bg-panel"}>
                   {row.inputs.map((bit, j) => (
-                    <td key={j} className="px-3 py-1.5 font-mono text-slate-700">
+                    <td key={j} className="px-3 py-1.5 font-mono text-ink">
                       {bit ? 1 : 0}
                     </td>
                   ))}
                   {row.outputs.map((bit, j) => (
-                    <td key={j} className="px-3 py-1.5 font-mono font-semibold text-blue-700">
+                    <td key={j} className="px-3 py-1.5 font-mono font-semibold text-copper-bright">
                       {bit ? 1 : 0}
                     </td>
                   ))}
@@ -291,9 +291,9 @@ export default function SharedProjectPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
-          <p className="text-slate-500">Loading shared project...</p>
+      <div className="min-h-screen p-8">
+        <div className="max-w-4xl mx-auto bg-panel rounded-lg border border-rule p-8">
+          <p className="text-ink-muted">Loading shared project...</p>
         </div>
       </div>
     );
@@ -301,11 +301,11 @@ export default function SharedProjectPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 p-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Link not available</h1>
-          <p className="text-slate-600 mb-6">{error}</p>
-          <Link to="/" className="text-blue-600 hover:underline">
+      <div className="min-h-screen p-8">
+        <div className="max-w-4xl mx-auto bg-panel rounded-lg border border-rule p-8">
+          <h1 className="text-2xl font-bold text-ink mb-2">Link not available</h1>
+          <p className="text-ink-muted mb-6">{error}</p>
+          <Link to="/" className="text-copper hover:underline">
             Go to EERoom
           </Link>
         </div>
@@ -316,15 +316,15 @@ export default function SharedProjectPage() {
   const data = project.project_data || {};
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
+    <div className="min-h-screen p-8">
+      <div className="max-w-4xl mx-auto bg-panel rounded-lg border border-rule p-8">
         <div className="flex flex-wrap items-start justify-between gap-2 mb-1">
-          <h1 className="text-2xl font-bold text-slate-800">{project.name}</h1>
-          <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700">
+          <h1 className="text-2xl font-bold text-ink">{project.name}</h1>
+          <span className="text-xs px-2 py-1 rounded-full bg-raised text-ink">
             Read only
           </span>
         </div>
-        <p className="text-sm text-slate-500 mb-6">
+        <p className="text-sm text-ink-muted mb-6">
           {TOOL_LABELS[project.tool_type] || project.tool_type} &middot; shared{" "}
           {formatDate(project.created_at)}
         </p>
@@ -333,14 +333,14 @@ export default function SharedProjectPage() {
         {project.tool_type === "wave" && <WaveView data={data} />}
         {project.tool_type === "logic" && <LogicView data={data} />}
         {!TOOL_LABELS[project.tool_type] && (
-          <p className="text-slate-500">
+          <p className="text-ink-muted">
             This project uses a tool this page does not know how to display.
           </p>
         )}
 
-        <div className="mt-8 pt-6 border-t border-slate-200 text-sm text-slate-500">
+        <div className="mt-8 pt-6 border-t border-rule text-sm text-ink-muted">
           Built with EERoom, a free browser-based electrical engineering toolkit.{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
+          <Link to="/register" className="text-copper hover:underline">
             Create an account
           </Link>{" "}
           to build your own.

@@ -30,19 +30,19 @@ const TOOLS = {
     label: "Ohm's Law",
     path: "/tools/ohm",
     blurb: "Voltage, current, resistance and power",
-    badge: "bg-blue-100 text-blue-800",
+    badge: "bg-raised text-copper-bright",
   },
   logic: {
     label: "Logic Gates",
     path: "/tools/logic",
     blurb: "Build circuits and auto-generate a truth table",
-    badge: "bg-purple-100 text-purple-800",
+    badge: "bg-raised text-signal",
   },
   wave: {
     label: "Waveform",
     path: "/tools/wave",
     blurb: "Visualize sine, square, sawtooth and triangle signals",
-    badge: "bg-emerald-100 text-emerald-800",
+    badge: "bg-raised text-ok",
   },
 };
 
@@ -135,15 +135,15 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-8 bg-slate-50 min-h-screen">
+    <div className="p-8 min-h-screen">
       {/* ---- Header ------------------------------------------------- */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-slate-800">
+        <h1 className="text-2xl font-bold text-ink">
           Welcome, {user?.email}
         </h1>
         <button
           onClick={logout}
-          className="text-sm text-slate-500 hover:underline"
+          className="text-sm text-ink-muted hover:underline"
         >
           Log out
         </button>
@@ -151,7 +151,7 @@ export default function DashboardPage() {
 
       {/* ---- Quick launch ------------------------------------------- */}
       <section className="mb-10">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 mb-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted mb-3">
           Start a new project
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -159,12 +159,12 @@ export default function DashboardPage() {
             <button
               key={key}
               onClick={() => navigate(tool.path)}
-              className="text-left bg-white border border-slate-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-sm transition"
+              className="text-left bg-panel border border-rule rounded-lg p-4 hover:border-copper hover:border-copper transition"
             >
-              <span className="block font-semibold text-slate-800">
+              <span className="block font-semibold text-ink">
                 {tool.label}
               </span>
-              <span className="block text-sm text-slate-500 mt-1">
+              <span className="block text-sm text-ink-muted mt-1">
                 {tool.blurb}
               </span>
             </button>
@@ -174,29 +174,29 @@ export default function DashboardPage() {
 
       {/* ---- Saved projects ----------------------------------------- */}
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 mb-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted mb-3">
           Your saved projects
         </h2>
 
         {error && (
-          <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+          <div className="mb-4 rounded-md bg-danger-surface border border-danger p-3 text-sm text-danger">
             {error}
           </div>
         )}
 
         {loading ? (
-          <p className="text-slate-500">Loading your projects...</p>
+          <p className="text-ink-muted">Loading your projects...</p>
         ) : projects.length === 0 ? (
           // Empty state: a new account has nothing saved yet, so point
           // them at something to do rather than showing a blank area.
-          <div className="bg-white border border-dashed border-slate-300 rounded-lg p-8 text-center">
-            <p className="text-slate-700 font-medium">No saved projects yet</p>
-            <p className="text-slate-500 text-sm mt-1 mb-4">
+          <div className="bg-panel border border-dashed border-rule-strong rounded-lg p-8 text-center">
+            <p className="text-ink font-medium">No saved projects yet</p>
+            <p className="text-ink-muted text-sm mt-1 mb-4">
               Open a tool above, build something, and save it to see it here.
             </p>
             <button
               onClick={() => navigate("/tools/ohm")}
-              className="bg-blue-600 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-700"
+              className="bg-copper text-ground text-sm px-4 py-2 rounded-md hover:bg-copper-bright"
             >
               Try the Ohm's Law calculator
             </button>
@@ -208,29 +208,29 @@ export default function DashboardPage() {
               return (
                 <div
                   key={project.project_id}
-                  className="bg-white border border-slate-200 rounded-lg p-4 flex flex-col"
+                  className="bg-panel border border-rule rounded-lg p-4 flex flex-col"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-slate-800 break-words">
+                    <h3 className="font-semibold text-ink break-words">
                       {project.name}
                     </h3>
                     <span
                       className={`shrink-0 text-xs px-2 py-1 rounded-full ${
-                        tool?.badge || "bg-slate-100 text-slate-700"
+                        tool?.badge || "bg-raised text-ink"
                       }`}
                     >
                       {tool?.label || project.tool_type}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-ink-muted mt-2">
                     Updated {formatDate(project.updated_at)}
                   </p>
 
-                  <div className="flex gap-2 mt-4 pt-3 border-t border-slate-100">
+                  <div className="flex gap-2 mt-4 pt-3 border-t border-rule">
                     <button
                       onClick={() => handleOpen(project)}
-                      className="text-sm px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                      className="text-sm px-3 py-1.5 rounded-md bg-copper text-ground hover:bg-copper-bright"
                     >
                       Open
                     </button>
@@ -239,13 +239,13 @@ export default function DashboardPage() {
                       <>
                         <button
                           onClick={() => handleDelete(project.project_id)}
-                          className="text-sm px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700"
+                          className="text-sm px-3 py-1.5 rounded-md bg-danger text-ground hover:bg-danger"
                         >
                           Confirm
                         </button>
                         <button
                           onClick={() => setConfirmingId(null)}
-                          className="text-sm px-3 py-1.5 rounded-md text-slate-500 hover:underline"
+                          className="text-sm px-3 py-1.5 rounded-md text-ink-muted hover:underline"
                         >
                           Cancel
                         </button>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
                     ) : (
                       <button
                         onClick={() => setConfirmingId(project.project_id)}
-                        className="text-sm px-3 py-1.5 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50"
+                        className="text-sm px-3 py-1.5 rounded-md border border-rule-strong text-ink-muted hover:bg-raised"
                       >
                         Delete
                       </button>
