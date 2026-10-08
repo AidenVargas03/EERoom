@@ -57,7 +57,7 @@ Every file has a header comment describing its purpose. Where a chunk of
 code follows a specific external pattern (official docs, a library's
 recommended usage, or a Stack Overflow answer) rather than being original
 logic, there's an inline `// Source: <url>` comment marking exactly what
-was adapted and from where. Business logic that's the student's own design
+was adapted and from where. Business logic that's my own design
 (e.g. Ohm's Law branching, boolean gate evaluation, project ownership
 checks) is not cited, since it isn't derived from an external source.
 
