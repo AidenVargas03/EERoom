@@ -28,6 +28,7 @@ import client from "../api/client.js";
 import WaveformCanvas, { formatTime } from "../components/WaveformCanvas.jsx";
 import { generateSamples, rms, voltageRange } from "../utils/waveform.js";
 import {
+  evaluateCircuit,
   generateTruthTable,
   toExpression,
   getOutputNodes,
@@ -152,11 +153,16 @@ function LogicView({ data }) {
   // blank page.
   let truthTable = null;
   let expressions = [];
+  let floating = [];
   let problem = "";
 
   try {
     truthTable = generateTruthTable(circuit);
     expressions = getOutputNodes(circuit).map((out) => toExpression(circuit, out.id));
+    // Floating pins are reported here too, not just in the editor. Without
+    // it a viewer sees an expression like "Y = 0" with no explanation and
+    // concludes the tool is broken, when the circuit is simply unfinished.
+    floating = evaluateCircuit(circuit, {}).floating;
   } catch (err) {
     problem = err.message;
   }
@@ -180,6 +186,18 @@ function LogicView({ data }) {
         <Readout label="Gates" value={gateCount} />
         <Readout label="Outputs" value={truthTable ? truthTable.outputs.length : 0} />
       </div>
+
+      {floating.length > 0 && (
+        <div className="mb-4 rounded-md bg-amber-50 border border-amber-300 p-3 text-sm text-amber-800">
+          <strong>
+            This circuit has {floating.length} unconnected input pin
+            {floating.length === 1 ? "" : "s"}.
+          </strong>{" "}
+          An unconnected pin is read as logic 0, so the truth table below shows what
+          the circuit does as saved, not what the finished circuit would do. A `0` in
+          the expression is one of these pins.
+        </div>
+      )}
 
       {expressions.length > 0 && (
         <div className="mb-4 bg-slate-50 border border-slate-200 rounded-md p-3">
