@@ -42,7 +42,7 @@
  * -----------------------------------------------------------------------
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // useSearchParams reads and writes the query string the way useState reads
 // and writes component state; its setter takes the same options object as
 // navigate(), which is where { replace: true } below comes from.
@@ -73,6 +73,12 @@ const CELL_H = 84;
 const NODE_W = 76;
 const NODE_H = 46;
 const PIN_R = 5;
+// The visible pin stays small so the board reads like a schematic, but a
+// 10px target is far below the 24px minimum interactive size in WCAG 2.5.8
+// and is genuinely hard to hit with a mouse, let alone a finger. An
+// invisible circle of this radius sits behind each pin and carries the
+// click, so the target is 24px across while the drawing is unchanged.
+const PIN_HIT_R = 12;
 
 const BOARD_W = COLS * CELL_W;
 const BOARD_H = ROWS * CELL_H;
@@ -104,6 +110,35 @@ function geometry(node) {
   };
 }
 
+/**
+ * A cable-like curve from one point to another. Horizontal control points
+ * bow the wire out sideways instead of cutting a straight diagonal through
+ * the boxes in between. Shared by finished wires and the one currently
+ * being dragged, so the preview looks exactly like the result.
+ */
+function cablePath(a, b) {
+  const dx = Math.max(28, Math.abs(b.x - a.x) / 2);
+  return `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x - dx} ${b.y}, ${b.x} ${b.y}`;
+}
+
+/**
+ * Turn a mouse or touch position into board coordinates.
+ *
+ * The board is an SVG with its own coordinate system, and it can be scaled
+ * down when the window is narrow, so a click at 400px across the screen is
+ * not at x = 400 on the board. getScreenCTM gives the transform the browser
+ * is applying, and inverting it maps the other way.
+ */
+function boardPointFromEvent(svgEl, event) {
+  if (!svgEl) return null;
+  const ctm = svgEl.getScreenCTM();
+  if (!ctm) return null;
+  const pt = svgEl.createSVGPoint();
+  pt.x = event.clientX;
+  pt.y = event.clientY;
+  return pt.matrixTransform(ctm.inverse());
+}
+
 /** Next free label in a sequence, so inputs read A, B, C and outputs Y, Z. */
 function nextLabel(existing, alphabet) {
   const used = new Set(existing.map((n) => n.label));
@@ -127,7 +162,23 @@ export default function LogicToolPage() {
 
   const [placing, setPlacing] = useState(null); // palette type awaiting a cell
   const [pendingWire, setPendingWire] = useState(null); // { from: nodeId }
+  // A wire currently being dragged: where it started and where the pointer
+  // is now, in board coordinates. Null when nothing is being dragged.
+  const [dragWire, setDragWire] = useState(null);
+  const svgRef = useRef(null);
+
+  // Where the dragged wire is anchored. Derived from the source node rather
+  // than stored, so it stays correct if the board changes mid-drag.
+  const dragOrigin = dragWire
+    ? geometry(circuit.nodes.find((n) => n.id === dragWire.from) ?? { col: 0, row: 0 })
+        .outputPin
+    : null;
   const [selectedId, setSelectedId] = useState(null);
+  // A selected wire, keyed "<destination node id>:<port>". Only one wire can
+  // land on a given input pin, so that pair identifies a wire uniquely and
+  // stays valid when other wires are added or removed, which an index into
+  // the edges array would not.
+  const [selectedEdge, setSelectedEdge] = useState(null);
 
   const [loading, setLoading] = useState(Boolean(searchParams.get("project")));
   const [loadError, setLoadError] = useState("");
@@ -203,14 +254,17 @@ export default function LogicToolPage() {
   function startWire(nodeId) {
     setPendingWire({ from: nodeId });
     setSelectedId(null);
+    setSelectedEdge(null);
   }
 
-  function finishWire(nodeId, port) {
-    if (!pendingWire) return;
-    if (pendingWire.from === nodeId) {
+  /**
+   * Add a wire. Both ways of making one end up here: clicking an output pin
+   * then an input pin, and dragging from one to the other.
+   */
+  function connect(fromId, toId, port) {
+    if (fromId === toId) {
       // A node wired straight back to itself is the simplest feedback loop;
       // refuse it here rather than letting the evaluator throw later.
-      setPendingWire(null);
       return;
     }
 
@@ -218,14 +272,39 @@ export default function LogicToolPage() {
       ...c,
       // Replace anything already on this pin: one wire per input.
       edges: [
-        ...c.edges.filter((e) => !(e.to === nodeId && (e.toPort ?? 0) === port)),
-        { from: pendingWire.from, to: nodeId, toPort: port },
+        ...c.edges.filter((e) => !(e.to === toId && (e.toPort ?? 0) === port)),
+        { from: fromId, to: toId, toPort: port },
       ],
     }));
+  }
+
+  function finishWire(nodeId, port) {
+    if (!pendingWire) return;
+    connect(pendingWire.from, nodeId, port);
+    setPendingWire(null);
+  }
+
+  /** Called when a dragged wire is released over an input pin. */
+  function dropWire(nodeId, port) {
+    if (!dragWire) return;
+    connect(dragWire.from, nodeId, port);
+    setDragWire(null);
     setPendingWire(null);
   }
 
   function deleteSelected() {
+    // A wire is selected: take just that wire off, leave the components.
+    if (selectedEdge) {
+      const [toId, portText] = selectedEdge.split(":");
+      const port = Number(portText);
+      setCircuit((c) => ({
+        ...c,
+        edges: c.edges.filter((e) => !(e.to === toId && (e.toPort ?? 0) === port)),
+      }));
+      setSelectedEdge(null);
+      return;
+    }
+
     if (!selectedId) return;
     setCircuit((c) => ({
       nodes: c.nodes.filter((n) => n.id !== selectedId),
@@ -244,6 +323,7 @@ export default function LogicToolPage() {
     setCircuit({ nodes: [], edges: [] });
     setInputValues({});
     setSelectedId(null);
+    setSelectedEdge(null);
     setPendingWire(null);
     setPlacing(null);
   }
@@ -251,16 +331,18 @@ export default function LogicToolPage() {
   // Delete key removes the selected component.
   useEffect(() => {
     function onKeyDown(e) {
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
+      if ((e.key === "Delete" || e.key === "Backspace") && (selectedId || selectedEdge)) {
         // Ignore while typing in the project name field.
         if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
         e.preventDefault();
         deleteSelected();
       }
       if (e.key === "Escape") {
+        setDragWire(null);
         setPlacing(null);
         setPendingWire(null);
         setSelectedId(null);
+        setSelectedEdge(null);
       }
     }
     window.addEventListener("keydown", onKeyDown);
@@ -355,10 +437,32 @@ export default function LogicToolPage() {
         </button>
 
         <h1 className="text-2xl font-bold text-ink mb-2">Logic Gate Sandbox</h1>
-        <p className="text-sm text-ink-muted mb-6">
-          Pick a component, click a cell to place it. Click an output pin then an input
-          pin to wire them. Click an input component to toggle it.
-        </p>
+        {/* Numbered because building a circuit genuinely is a sequence:
+            you cannot wire a gate you have not placed. The wiring step
+            says which side each pin is on, since that is the part people
+            get stuck on. */}
+        <ol className="text-sm text-ink-muted mb-6 space-y-1.5 max-w-prose">
+          <li>
+            <span className="text-copper font-medium">1.</span> Pick a component below,
+            then click an empty cell to drop it on the board.
+          </li>
+          <li>
+            <span className="text-copper font-medium">2.</span> To wire two components,
+            click the small circle on the <span className="text-ink">right</span> edge of
+            one, then the circle on the <span className="text-ink">left</span> edge of the
+            next. A line is drawn between them.
+          </li>
+          <li>
+            <span className="text-copper font-medium">3.</span> Click an INPUT box to flip
+            it between 0 and 1. Wires carrying a 1 turn copper, and the truth table below
+            fills in as you go.
+          </li>
+          <li>
+            <span className="text-copper font-medium">4.</span> Wired something up wrong?
+            Click the wire to select it, then press Delete or use the button. Dragging a
+            new wire onto the same pin replaces the old one.
+          </li>
+        </ol>
 
         {loadError && (
           <div className="mb-4 rounded-md bg-danger-surface border border-danger p-3 text-sm text-danger">
@@ -401,10 +505,10 @@ export default function LogicToolPage() {
           <span className="flex-1" />
           <button
             onClick={deleteSelected}
-            disabled={!selectedId}
+            disabled={!selectedId && !selectedEdge}
             className="px-3 py-1.5 text-sm rounded-md border border-rule-strong text-ink-muted hover:bg-raised disabled:opacity-40"
           >
-            Delete selected
+            {selectedEdge ? "Delete wire" : "Delete selected"}
           </button>
           <button
             onClick={clearBoard}
@@ -414,12 +518,23 @@ export default function LogicToolPage() {
           </button>
         </div>
 
-        <p className="text-xs text-ink-muted mb-2 h-4">
-          {placing
-            ? `Click an empty cell to place the ${placing} component. Escape to cancel.`
-            : pendingWire
-            ? "Now click an input pin to finish the wire. Escape to cancel."
-            : ""}
+        {/* Reserves its own height so the board does not jump when the
+            message appears and disappears. */}
+        <p className="text-xs mb-2 min-h-5">
+          {placing ? (
+            <span className="text-copper">
+              Placing {placing}. Click an empty cell, or press Escape to cancel.
+            </span>
+          ) : pendingWire ? (
+            <span className="text-copper">
+              Wire started. Now click a circle on the left edge of another component, or
+              press Escape to cancel.
+            </span>
+          ) : (
+            <span className="text-ink-faint">
+              Nothing selected. Pick a component above to start placing.
+            </span>
+          )}
         </p>
 
         {/* ---- board ---- */}
@@ -429,10 +544,23 @@ export default function LogicToolPage() {
             with overflow-x-auto still lets it scroll on a narrow screen. */}
         <div className="border border-rule rounded-md bg-panel overflow-x-auto mb-4 w-fit max-w-full mx-auto">
           <svg
+            ref={svgRef}
             width={BOARD_W}
             height={BOARD_H}
             viewBox={`0 0 ${BOARD_W} ${BOARD_H}`}
             className="block"
+            // touchAction none stops a finger drag scrolling the page while
+            // it is pulling a wire.
+            style={{ touchAction: "none" }}
+            onPointerMove={(event) => {
+              if (!dragWire) return;
+              const point = boardPointFromEvent(svgRef.current, event);
+              if (point) setDragWire((d) => (d ? { ...d, x: point.x, y: point.y } : d));
+            }}
+            // Released anywhere that is not an input pin, the wire is
+            // abandoned. The pin's own handler runs first and clears this.
+            onPointerUp={() => setDragWire(null)}
+            onPointerLeave={() => setDragWire(null)}
           >
             {/* empty cells, clickable while placing */}
             {Array.from({ length: ROWS }).map((_, row) =>
@@ -447,7 +575,10 @@ export default function LogicToolPage() {
                     height={CELL_H}
                     fill={placing && !taken ? palette.raised : palette.panel}
                     stroke={palette.grid}
-                    onClick={() => placeAt(col, row)}
+                    onClick={() => {
+                      setSelectedEdge(null);
+                      placeAt(col, row);
+                    }}
                     style={{ cursor: placing && !taken ? "pointer" : "default" }}
                   />
                 );
@@ -465,19 +596,57 @@ export default function LogicToolPage() {
               if (!pin) return null;
 
               const live = Boolean(values[edge.from]);
-              // Horizontal control points give the wire a cable-like bow
-              // instead of a straight diagonal that can pass through boxes.
-              const dx = Math.max(28, Math.abs(pin.x - a.x) / 2);
+              const key = `${edge.to}:${edge.toPort ?? 0}`;
+              const isSelected = selectedEdge === key;
+              const d = cablePath(a, pin);
+
               return (
-                <path
-                  key={`e${i}`}
-                  d={`M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${pin.x - dx} ${pin.y}, ${pin.x} ${pin.y}`}
-                  fill="none"
-                  stroke={live ? palette.copper : palette.rule}
-                  strokeWidth={live ? 2.5 : 2}
-                />
+                <g key={`e${i}`}>
+                  {/* A 2px line is almost impossible to click. This invisible
+                      copy is 16px wide and carries the click, the same trick
+                      used on the pins. */}
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke="transparent"
+                    strokeWidth={16}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      setSelectedEdge(key);
+                      setSelectedId(null);
+                      setPendingWire(null);
+                    }}
+                  />
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke={
+                      isSelected
+                        ? palette.danger
+                        : live
+                        ? palette.copper
+                        : palette.rule
+                    }
+                    strokeWidth={isSelected ? 3.5 : live ? 2.5 : 2}
+                    strokeDasharray={isSelected ? "7 4" : undefined}
+                    pointerEvents="none"
+                  />
+                </g>
               );
             })}
+
+            {/* the wire currently being dragged, drawn the same way a
+                finished one will be so there is no surprise on release */}
+            {dragWire && (
+              <path
+                d={cablePath(dragOrigin, { x: dragWire.x, y: dragWire.y })}
+                fill="none"
+                stroke={palette.copperBright}
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                pointerEvents="none"
+              />
+            )}
 
             {/* components */}
             {circuit.nodes.map((node) => {
@@ -522,32 +691,60 @@ export default function LogicToolPage() {
                   {g.inputPins.map((pin) => {
                     const isFloating = floatingSet.has(`${node.id}:${pin.port}`);
                     return (
-                      <circle
+                      <g
                         key={pin.port}
-                        cx={pin.x}
-                        cy={pin.y}
-                        r={PIN_R}
-                        fill={isFloating ? palette.warningSurface : palette.panel}
-                        stroke={isFloating ? palette.warning : palette.ruleStrong}
-                        strokeWidth={1.5}
                         onClick={() => finishWire(node.id, pin.port)}
-                        style={{ cursor: pendingWire ? "pointer" : "default" }}
-                      />
+                        onPointerUp={() => dropWire(node.id, pin.port)}
+                        style={{
+                          cursor: pendingWire || dragWire ? "pointer" : "default",
+                        }}
+                      >
+                        <circle cx={pin.x} cy={pin.y} r={PIN_HIT_R} fill="transparent" />
+                        <circle
+                          cx={pin.x}
+                          cy={pin.y}
+                          r={PIN_R}
+                          fill={isFloating ? palette.warningSurface : palette.panel}
+                          stroke={isFloating ? palette.warning : palette.ruleStrong}
+                          strokeWidth={1.5}
+                          style={{ pointerEvents: "none" }}
+                        />
+                      </g>
                     );
                   })}
 
                   {/* output pin, except on OUTPUT components which have none */}
                   {node.type !== "OUTPUT" && (
-                    <circle
-                      cx={g.outputPin.x}
-                      cy={g.outputPin.y}
-                      r={PIN_R}
-                      fill={value ? palette.copper : palette.panel}
-                      stroke={palette.ruleStrong}
-                      strokeWidth={1.5}
+                    <g
                       onClick={() => startWire(node.id)}
+                      onPointerDown={(event) => {
+                        // preventDefault stops the browser starting a text
+                        // selection, which would fight the drag.
+                        event.preventDefault();
+                        setDragWire({
+                          from: node.id,
+                          x: g.outputPin.x,
+                          y: g.outputPin.y,
+                        });
+                      }}
                       style={{ cursor: "pointer" }}
-                    />
+                    >
+                      <circle
+                        cx={g.outputPin.x}
+                        cy={g.outputPin.y}
+                        r={PIN_HIT_R}
+                        fill="transparent"
+                      />
+                      <circle
+                        cx={g.outputPin.x}
+                        cy={g.outputPin.y}
+                        r={PIN_R}
+                        fill={value ? palette.copper : palette.panel}
+                        stroke={palette.ruleStrong}
+                        strokeWidth={1.5}
+                        style={{ pointerEvents: "none" }}
+                      />
+                    </g>
                   )}
                 </g>
               );
