@@ -1,6 +1,3 @@
-# Private working notes, never published to the public repo
-_handoffs/
-
 # Secrets. Real keys live in these and must never reach GitHub.
 # The .env.example templates are committed on purpose.
 .env

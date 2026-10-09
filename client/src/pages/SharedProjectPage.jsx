@@ -16,9 +16,6 @@
  * There is no editing of any kind: no inputs, no save, no toggles. A
  * viewer who wants to change something is pointed at registering for
  * their own account.
- *
- * NOTE: styling is deliberately plain and matches the other pages. The
- * visual pass over the whole site comes after every tool works.
  * -----------------------------------------------------------------------
  */
 

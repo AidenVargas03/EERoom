@@ -32,15 +32,12 @@
  * ---------------------------------------------------------------------
  *
  * How it is used:
- *  *   - pick a component from the palette, then click an empty cell
+ *   - pick a component from the palette, then click an empty cell
  *   - run a wire either by clicking an output pin and then an input pin,
  *     or by dragging from one pin to the other
  *   - click a wire to select it, then delete it if it landed on the wrong pin
  *   - click an INPUT component's body to toggle it between 0 and 1
  *   - select a component and press Delete to remove it and its wires
- *
- * NOTE: styling is deliberately plain and matches the other pages. The
- * visual pass over the whole site comes after every tool works.
  * -----------------------------------------------------------------------
  */
 

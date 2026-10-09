@@ -12,7 +12,7 @@
  *   /tools/wave      -> Waveform Visualizer (protected)
  *   /share/:token    -> Public read-only shared project view
  *
- * * Every route above is built. The tools were finished in the order the
+ * Every route above is built. The tools were finished in the order the
  * Milestone 3 plan set: Ohm's Law first, then the Waveform Visualizer,
  * then the Logic Gate Sandbox.
  * -----------------------------------------------------------------------
