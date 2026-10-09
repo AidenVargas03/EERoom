@@ -3,7 +3,7 @@
 Browser-based electrical engineering simulation platform.
 CST-452 Senior Project II, Milestone 4 (Coding and Testing, 2nd Code Iteration).
 
-**Live site:** https://eeroom-aidensprojects1.vercel.app
+**Live site:** https://www.eeroom.io
 
 ## Repo structure
 
@@ -56,7 +56,7 @@ write.
 
 | Part | Host | Root directory | URL |
 |---|---|---|---|
-| Frontend | Vercel | `client` | https://eeroom-aidensprojects1.vercel.app |
+| Frontend | Vercel | `client` | https://www.eeroom.io |
 | Backend | Railway | `server` | https://eeroom-production.up.railway.app |
 
 Both hosts deploy automatically when `main` is pushed. This is a monorepo, so
@@ -69,8 +69,23 @@ a `package.json` in the repo root and fails.
   values into the bundle when it builds, not when the page loads, so changing
   this value only takes effect after a new deploy.
 - Railway needs `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`,
-  `PORT`, and `CLIENT_URL`. `CLIENT_URL` is the Vercel URL, and the CORS
-  setting uses it to decide which site is allowed to call the API.
+  `PORT`, and `CLIENT_URL`. `CLIENT_URL` is a comma separated list of every
+  origin allowed to call the API, and the CORS setting reads it to decide
+  which sites may do so. It currently holds `https://www.eeroom.io`,
+  `https://eeroom.io` and `https://eeroom.vercel.app`. A single value was
+  enough before the custom domain existed. During a domain changeover both
+  the old and the new origin have to work at once, and with one value one of
+  them always fails. A rejected origin shows up in the browser as a request
+  that simply never returns, which is a confusing way to find out about a
+  configuration problem.
+
+**Rate limiting.** The three `/auth` routes allow ten requests per fifteen
+minutes per address. They are the only routes a stranger can reach, so an
+unlimited `/auth/login` would let someone guess passwords as fast as they
+could send requests. Express sits behind Railway's proxy, which is why
+`index.js` sets `trust proxy` to 1: without it the caller's real address is
+hidden behind the proxy's, every request lands in the same bucket, and ten
+failed logins from anybody would lock out everybody.
 
 **Why `client/vercel.json` exists.** The app uses `BrowserRouter`. A
 production build only produces `index.html` and the asset files, so asking for
@@ -98,9 +113,11 @@ format inside the file.
 - [x] 7. Logic Gate Sandbox, with truth table and boolean expression
 - [x] 8. Share link functionality (backend routes and frontend UI)
 - [x] 9. Deploy to Vercel + Railway
-- [ ] 10. Testing, polish, README, final GitHub cleanup. The 68 client unit
-      tests are written and passing. Server test cases, the styling pass and
-      the landing page are still to do.
+- [x] 10. Blueprint dark theme across every page, the landing page, and
+      drag-to-connect wiring with wire removal in the logic sandbox
+- [x] 11. Custom domain (www.eeroom.io) and rate limiting on the auth routes
+- [ ] 12. Milestone 4 write-up, the screencast, and the manual test run. The
+      68 client unit tests are written and passing.
 
 ## Code documentation / citation policy (for Milestone 4's Source Code
 Listing requirement)
@@ -119,6 +136,8 @@ Files with an explicit source citation so far:
 - `server/middleware/authMiddleware.js` - Bearer token parsing pattern (Stack Overflow)
 - `server/config/supabaseClient.js` - Supabase server-side client setup (official docs)
 - `server/controllers/projectController.js` - `crypto.randomBytes` share token generation (Node.js official docs)
+- `server/routes/authRoutes.js` - express-rate-limit usage and option names (the library's own proxy troubleshooting guide)
+- `server/index.js` - the Express `trust proxy` setting for a server behind a single reverse proxy (same guide)
 
 **Client, configuration**
 - `client/vite.config.js` - Vite's default React template scaffold (official docs)
