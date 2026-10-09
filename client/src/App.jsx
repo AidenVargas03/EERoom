@@ -12,9 +12,9 @@
  *   /tools/wave      -> Waveform Visualizer (protected)
  *   /share/:token    -> Public read-only shared project view
  *
- * Each page component currently is a placeholder stub - they'll be
- * filled in as we build each tool (see handoff doc's recommended build
- * order: Ohm's Law first, then Waveform, then Logic Gate Sandbox last).
+ * * Every route above is built. The tools were finished in the order the
+ * Milestone 3 plan set: Ohm's Law first, then the Waveform Visualizer,
+ * then the Logic Gate Sandbox.
  * -----------------------------------------------------------------------
  */
 
