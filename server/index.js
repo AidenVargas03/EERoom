@@ -32,6 +32,15 @@ import shareRoutes from "./routes/shareRoutes.js";
 dotenv.config();
 
 const app = express();
+// Railway terminates TLS and forwards the request on, so the caller's
+// real address arrives in the X-Forwarded-For header rather than on the
+// socket. Without this setting every request looks like it came from the
+// proxy, and the rate limiter on the auth routes puts all users in one
+// bucket: ten failed logins from anybody would lock out everybody. The 1
+// is the number of proxies sitting in front of this server.
+// Source: express-rate-limit's proxy troubleshooting guide -
+// https://github.com/express-rate-limit/express-rate-limit/wiki/Troubleshooting-Proxy-Issues
+app.set("trust proxy", 1);
 const PORT = process.env.PORT || 4000;
 
 // ---- Global Middleware -------------------------------------------------
