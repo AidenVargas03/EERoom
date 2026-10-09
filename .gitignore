@@ -1,2 +1,16 @@
-# Private working notes - never published to the public repo
+# Private working notes, never published to the public repo
 _handoffs/
+
+# Secrets. Real keys live in these and must never reach GitHub.
+# The .env.example templates are committed on purpose.
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Installed packages and build output, both rebuilt from package.json
+node_modules/
+dist/
+
+# Logs
+*.log
