@@ -22,8 +22,8 @@
  * Save/load works the same way as the Ohm tool: no query parameter means
  * a new project, ?project=<id> loads that row and Save updates it.
  *
- * NOTE: styling here is deliberately plain and matches the other pages.
- * A proper visual pass over the whole site comes after every tool works.
+ * NOTE: styling is deliberately plain and matches the other pages. The
+ * visual pass over the whole site comes after every tool works.
  * -----------------------------------------------------------------------
  */
 
