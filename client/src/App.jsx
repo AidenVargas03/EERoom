@@ -9,9 +9,9 @@
  *   /forgot-password -> Request a password reset email (iteration 3)
  *   /reset-password  -> Set a new password from the email link (iteration 3)
  *   /dashboard       -> Dashboard (protected)
- *   /tools/ohm       -> Ohm's Law Calculator (protected)
- *   /tools/logic     -> Logic Gate Sandbox (protected)
- *   /tools/wave      -> Waveform Visualizer (protected)
+ *   /tools/ohm       -> Ohm's Law Calculator (open to guests)
+ *   /tools/logic     -> Logic Gate Sandbox (open to guests)
+ *   /tools/wave      -> Waveform Visualizer (open to guests)
  *   /share/:token    -> Public read-only shared project view
  *
  * Every route above is built. The tools were finished in the order the
@@ -45,36 +45,20 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/share/:token" element={<SharedProjectPage />} />
 
-      {/* Protected routes - redirect to /login if not authenticated */}
+      {/* The tools are public so visitors can try them before registering
+          (SC-06, iteration 3). Saving still needs an account: the tool
+          pages show a sign-up prompt in place of Save for guests, and the
+          API rejects any save without a valid token. */}
+      <Route path="/tools/ohm" element={<OhmToolPage />} />
+      <Route path="/tools/logic" element={<LogicToolPage />} />
+      <Route path="/tools/wave" element={<WaveToolPage />} />
+
+      {/* Protected route - redirect to /login if not authenticated */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
             <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/tools/ohm"
-        element={
-          <ProtectedRoute>
-            <OhmToolPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/tools/logic"
-        element={
-          <ProtectedRoute>
-            <LogicToolPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/tools/wave"
-        element={
-          <ProtectedRoute>
-            <WaveToolPage />
           </ProtectedRoute>
         }
       />

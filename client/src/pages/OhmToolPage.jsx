@@ -47,11 +47,15 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createProject, getProject, updateProject } from "../api/projects.js";
 import ShareButton from "../components/ShareButton.jsx";
+import GuestSavePrompt from "../components/GuestSavePrompt.jsx";
+import { useAuth } from "../hooks/useAuth.jsx";
 
 const DEFAULT_NAME = "Untitled Ohm's Law Project";
 
 export default function OhmToolPage() {
   const navigate = useNavigate();
+  // Tools are open to guests (SC-06). Only saving needs an account.
+  const { isLoggedIn } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // The project currently being edited, or null when creating a new one.
@@ -203,6 +207,16 @@ export default function OhmToolPage() {
     power = vNum * iNum;
   }
 
+  /** The values a saved project stores. Used by Save and by the guest prompt. */
+  function currentProjectData() {
+    return {
+      voltage: calculatedVoltage,
+      current: calculatedCurrent,
+      resistance: calculatedResistance,
+      power,
+    };
+  }
+
   async function handleSave() {
     setSaveStatus("saving");
     setSaveError("");
@@ -210,12 +224,7 @@ export default function OhmToolPage() {
     // The database requires a name (NOT NULL), and an untitled project is
     // better than a failed save, so fall back rather than blocking.
     const nameToSave = projectName.trim() || DEFAULT_NAME;
-    const projectData = {
-      voltage: calculatedVoltage,
-      current: calculatedCurrent,
-      resistance: calculatedResistance,
-      power,
-    };
+    const projectData = currentProjectData();
 
     try {
       if (projectId) {
@@ -258,11 +267,12 @@ export default function OhmToolPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-md mx-auto bg-panel rounded-lg border border-rule p-8">
+        {/* Guests have no dashboard, so they go back to the home page. */}
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate(isLoggedIn ? "/dashboard" : "/")}
           className="text-sm text-ink-muted hover:underline mb-4"
         >
-          &larr; Back to Dashboard
+          &larr; {isLoggedIn ? "Back to Dashboard" : "Back to Home"}
         </button>
 
         <h1 className="text-2xl font-bold text-ink mb-2">Ohm's Law &amp; Power Calculator</h1>
@@ -348,27 +358,36 @@ export default function OhmToolPage() {
           </span>
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={power === null || saveStatus === "saving"}
-          className="mt-6 w-full bg-copper text-ground py-2 rounded-md font-medium hover:bg-copper-bright disabled:opacity-50"
-        >
-          {saveStatus === "saving"
-            ? "Saving..."
-            : saveStatus === "saved"
-            ? "Saved!"
-            : projectId
-            ? "Update Project"
-            : "Save Project"}
-        </button>
+        {isLoggedIn ? (
+          <>
+            <button
+              onClick={handleSave}
+              disabled={power === null || saveStatus === "saving"}
+              className="mt-6 w-full bg-copper text-ground py-2 rounded-md font-medium hover:bg-copper-bright disabled:opacity-50"
+            >
+              {saveStatus === "saving"
+                ? "Saving..."
+                : saveStatus === "saved"
+                ? "Saved!"
+                : projectId
+                ? "Update Project"
+                : "Save Project"}
+            </button>
 
-        {saveStatus === "error" && (
-          <p className="mt-2 text-sm text-danger">{saveError}</p>
+            {saveStatus === "error" && (
+              <p className="mt-2 text-sm text-danger">{saveError}</p>
+            )}
+
+            <div className="mt-4 pt-4 border-t border-rule">
+              <ShareButton projectId={projectId} />
+            </div>
+          </>
+        ) : (
+          <GuestSavePrompt
+            toolType="ohm"
+            getDraft={() => ({ name: projectName.trim(), projectData: currentProjectData() })}
+          />
         )}
-
-        <div className="mt-4 pt-4 border-t border-rule">
-          <ShareButton projectId={projectId} />
-        </div>
       </div>
     </div>
   );

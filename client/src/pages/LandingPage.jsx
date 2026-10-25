@@ -188,7 +188,7 @@ const glyphs = {
   ),
 };
 
-function Tool({ glyph, name, children }) {
+function Tool({ glyph, name, to, children }) {
   return (
     <div className="flex gap-5 py-7 border-t border-rule">
       <svg
@@ -202,6 +202,10 @@ function Tool({ glyph, name, children }) {
       <div>
         <h3 className="text-ink font-medium mb-1">{name}</h3>
         <p className="text-ink-muted text-sm leading-relaxed max-w-prose">{children}</p>
+        {/* Tools are open to guests (SC-06), so each one links straight in. */}
+        <Link to={to} className="inline-block mt-3 text-sm text-copper hover:underline">
+          Try it now, no account needed &rarr;
+        </Link>
       </div>
     </div>
   );
@@ -250,6 +254,12 @@ export default function LandingPage() {
               >
                 Sign in
               </Link>
+              <Link
+                to="/tools/logic"
+                className="rounded px-5 py-2.5 text-copper hover:underline"
+              >
+                Try the tools first
+              </Link>
             </div>
           </div>
 
@@ -258,15 +268,15 @@ export default function LandingPage() {
 
         <section className="mx-auto max-w-5xl px-6 pb-24">
           <h2 className="text-sm font-medium text-ink-faint mb-2">What is in it</h2>
-          <Tool glyph="resistor" name="Ohm's law and power">
+          <Tool glyph="resistor" to="/tools/ohm" name="Ohm's law and power">
             Enter any two of voltage, current and resistance. The third value and the power follow
             as you type.
           </Tool>
-          <Tool glyph="wave" name="Waveform visualiser">
+          <Tool glyph="wave" to="/tools/wave" name="Waveform visualiser">
             Sine, square, triangle and sawtooth, with adjustable frequency, amplitude and sample
             rate. Shows RMS and warns you when the sample rate drops below Nyquist.
           </Tool>
-          <Tool glyph="gate" name="Logic gate sandbox">
+          <Tool glyph="gate" to="/tools/logic" name="Logic gate sandbox">
             Place gates on a board and wire them together. The truth table and the boolean
             expression update as you build, and unconnected pins are flagged rather than silently
             read as zero.
