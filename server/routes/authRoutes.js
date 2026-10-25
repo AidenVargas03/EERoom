@@ -6,12 +6,13 @@
  *   POST /auth/register
  *   POST /auth/login
  *   POST /auth/reset-password
+ *   POST /auth/update-password  (added in iteration 3, finishes FR-04)
  *
  * None of these require the requireAuth middleware, since a user can't
  * have a token before they've registered/logged in.
  *
  * They are rate limited instead, which is the Security Design's answer
- * to the same problem. These three are the only routes a stranger can
+ * to the same problem. These are the only routes a stranger can
  * reach, so they are the only ones worth attacking: an unlimited
  * /auth/login lets someone guess passwords as fast as they can send
  * requests, and the generic "Invalid email or password" message does
@@ -35,7 +36,7 @@
 
 import express from "express";
 import rateLimit from "express-rate-limit";
-import { register, login, resetPassword } from "../controllers/authController.js";
+import { register, login, resetPassword, updatePassword } from "../controllers/authController.js";
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -52,5 +53,6 @@ router.use(authLimiter);
 router.post("/register", register);
 router.post("/login", login);
 router.post("/reset-password", resetPassword);
+router.post("/update-password", updatePassword);
 
 export default router;

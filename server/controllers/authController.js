@@ -132,8 +132,18 @@ export async function login(req, res) {
  * POST /auth/reset-password
  * Body: { email }
  *
- * Delegates to Supabase Auth's built-in password reset email flow.
- * We don't implement our own email sending or reset-token logic.
+ * Step 1 of the reset flow. Delegates to Supabase Auth's built-in
+ * password reset email. We don't implement our own email sending or
+ * reset-token logic.
+ *
+ * redirectTo is where the link in the email sends the user. It comes
+ * from PASSWORD_RESET_URL rather than from the request, so nobody can
+ * make the email point at a different site. Supabase also refuses any
+ * redirect that is not on the project's Redirect URLs list.
+ *
+ * The response is the same whether or not the email belongs to an
+ * account. Saying "no account with that email" would let anyone check
+ * which addresses are registered.
  */
 export async function resetPassword(req, res) {
   const { email } = req.body;
@@ -142,11 +152,66 @@ export async function resetPassword(req, res) {
     return res.status(400).json({ error: "Email is required." });
   }
 
-    const { error } = await supabaseAuth.auth.resetPasswordForEmail(email);
+  const { error } = await supabaseAuth.auth.resetPasswordForEmail(email, {
+    redirectTo: process.env.PASSWORD_RESET_URL,
+  });
 
   if (error) {
-    return res.status(400).json({ error: error.message });
+    // Logged for us, never sent to the browser (see the comment above).
+    console.error("Password reset email failed:", error.message);
   }
 
-  return res.status(200).json({ message: "Password reset email sent." });
+  return res.status(200).json({
+    message: "If an account exists for that email, a reset link is on its way.",
+  });
+}
+
+/**
+ * POST /auth/update-password
+ * Body: { accessToken, password }
+ *
+ * Step 2 of the reset flow. The link in the reset email lands on the
+ * frontend's /reset-password page with a short-lived Supabase recovery
+ * token in the URL. The page sends that token here with the new password.
+ *
+ * supabase.auth.getUser(token) asks Supabase whether the token is real and
+ * unexpired, and tells us whose it is. Only then do we change that user's
+ * password with the admin API. The user id always comes from the verified
+ * token, never from the request body.
+ *
+ * Source: Supabase JavaScript reference for auth.getUser(jwt) and
+ * auth.admin.updateUserById(uid, attributes) -
+ * https://supabase.com/docs/reference/javascript/auth-getuser
+ * https://supabase.com/docs/reference/javascript/auth-admin-updateuserbyid
+ */
+export async function updatePassword(req, res) {
+  const { accessToken, password } = req.body;
+
+  if (!accessToken || !password) {
+    return res.status(400).json({ error: "Reset token and new password are required." });
+  }
+
+  // Same minimum the Register form enforces.
+  if (password.length < 8) {
+    return res.status(400).json({ error: "Password must be at least 8 characters." });
+  }
+
+  const { data, error } = await supabaseAuth.auth.getUser(accessToken);
+
+  if (error || !data?.user) {
+    return res.status(401).json({
+      error: "This reset link is invalid or has expired. Request a new one.",
+    });
+  }
+
+  const { error: updateError } = await supabase.auth.admin.updateUserById(data.user.id, {
+    password,
+  });
+
+  if (updateError) {
+    console.error("Password update failed:", updateError.message);
+    return res.status(500).json({ error: "Could not update the password. Please try again." });
+  }
+
+  return res.status(200).json({ message: "Password updated. You can now log in." });
 }
