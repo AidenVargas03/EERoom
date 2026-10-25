@@ -40,13 +40,20 @@ export const palette = {
   ruleStrong: "#3E6287",
 
   // Text, strongest first.
-  ink: "#E8EEF4",
-  inkMuted: "#9DB4C8",
-  inkFaint: "#6E8AA3",
+  //
+  // Iteration 3 contrast pass (BL-18): every text colour below now meets
+  // the WCAG 2.2 AA minimum of 4.5:1 against the panel background it sits
+  // on. inkFaint was #6E8AA3 (3.75:1 on panel), copper #C87941 (4.03:1)
+  // and danger #E0605A (3.85:1); each was lightened just enough to pass.
+  // Source: WCAG 2.2 Success Criterion 1.4.3, Contrast (Minimum) -
+  // https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
+  ink: "#E8EEF4", // 11.6:1 on panel
+  inkMuted: "#9DB4C8", // 6.3:1 on panel
+  inkFaint: "#8AA3BA", // 5.2:1 on panel
 
   // Copper. Used for anything interactive and for an energised signal.
-  copper: "#C87941",
-  copperBright: "#E09A5B",
+  copper: "#DE9058", // 5.3:1 as text on panel; dark button text on it is 6.5:1
+  copperBright: "#EBA86E",
   copperDim: "#7A4D2B",
 
   // Traces drawn on the waveform canvas.
@@ -58,7 +65,7 @@ export const palette = {
   // danger is for something actually wrong, ok is for a passing state.
   warning: "#E3B341",
   warningSurface: "#3A3118",
-  danger: "#E0605A",
+  danger: "#F2847D", // 5.4:1 on panel, 6.0:1 on dangerSurface
   dangerSurface: "#3B1F1F",
   ok: "#5FB98B",
 };

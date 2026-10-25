@@ -78,8 +78,10 @@ const PIN_R = 5;
 // 10px target is far below the 24px minimum interactive size in WCAG 2.5.8
 // and is genuinely hard to hit with a mouse, let alone a finger. An
 // invisible circle of this radius sits behind each pin and carries the
-// click, so the target is 24px across while the drawing is unchanged.
-const PIN_HIT_R = 12;
+// click, so the target is at least 24px across while the drawing is
+// unchanged. It was 12 until iteration 3; the board now shrinks to fit a
+// tablet (0.86 scale at 768px wide), and 28 units still comes out at 24px.
+const PIN_HIT_R = 14;
 
 const BOARD_W = COLS * CELL_W;
 const BOARD_H = ROWS * CELL_H;
@@ -435,8 +437,10 @@ export default function LogicToolPage() {
   const occupied = new Set(circuit.nodes.map((n) => `${n.col},${n.row}`));
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-5xl mx-auto bg-panel rounded-lg border border-rule p-8">
+    // Tighter padding below the lg breakpoint gives the board more width on
+    // a tablet, so it needs to shrink less (BL-18).
+    <div className="min-h-screen p-4 lg:p-8">
+      <div className="max-w-5xl mx-auto bg-panel rounded-lg border border-rule p-4 lg:p-8">
         {/* Guests have no dashboard, so they go back to the home page. */}
         <button
           onClick={() => navigate(isLoggedIn ? "/dashboard" : "/")}
@@ -547,17 +551,24 @@ export default function LogicToolPage() {
         </p>
 
         {/* ---- board ---- */}
-        {/* w-fit keeps the border wrapped tight around the board. The SVG is
-            a fixed BOARD_W wide, so a full-width container shows its own
-            background in the gap to the right of the last cell. max-w-full
-            with overflow-x-auto still lets it scroll on a narrow screen. */}
-        <div className="border border-rule rounded-md bg-panel overflow-x-auto mb-4 w-fit max-w-full mx-auto">
+        {/* The board scales down to fit the card instead of scrolling
+            (BL-18, iteration 3). It was a fixed BOARD_W wide inside a
+            scrolling box, which on a 768px tablet hid the right-hand
+            columns, and because the SVG sets touchAction "none" a finger
+            could not scroll the box to reach them. Now the SVG is 100% wide,
+            capped at its natural size, and the viewBox keeps every
+            coordinate the same. boardPointFromEvent already converts clicks
+            through getScreenCTM(), so placing and wiring still land on the
+            right cell at any scale. */}
+        <div
+          className="border border-rule rounded-md bg-panel mb-4 mx-auto"
+          style={{ maxWidth: BOARD_W + 2 }}
+        >
           <svg
             ref={svgRef}
-            width={BOARD_W}
-            height={BOARD_H}
+            width="100%"
             viewBox={`0 0 ${BOARD_W} ${BOARD_H}`}
-            className="block"
+            className="block h-auto"
             // touchAction none stops a finger drag scrolling the page while
             // it is pulling a wire.
             style={{ touchAction: "none" }}
