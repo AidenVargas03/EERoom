@@ -13,6 +13,7 @@
  *   /tools/logic     -> Logic Gate Sandbox (open to guests)
  *   /tools/wave      -> Waveform Visualizer (open to guests)
  *   /share/:token    -> Public read-only shared project view
+ *   /portfolio       -> Public project portfolio (Milestone 6)
  *
  * Every route above is built. The tools were finished in the order the
  * Milestone 3 plan set: Ohm's Law first, then the Waveform Visualizer,
@@ -33,6 +34,7 @@ import OhmToolPage from "./pages/OhmToolPage.jsx";
 import LogicToolPage from "./pages/LogicToolPage.jsx";
 import WaveToolPage from "./pages/WaveToolPage.jsx";
 import SharedProjectPage from "./pages/SharedProjectPage.jsx";
+import PortfolioPage from "./pages/PortfolioPage.jsx";
 
 export default function App() {
   return (
@@ -44,6 +46,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/share/:token" element={<SharedProjectPage />} />
+      <Route path="/portfolio" element={<PortfolioPage />} />
 
       {/* The tools are public so visitors can try them before registering
           (SC-06, iteration 3). Saving still needs an account: the tool

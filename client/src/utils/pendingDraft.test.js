@@ -1,3 +1,15 @@
+/**
+ * utils/pendingDraft.test.js
+ * -----------------------------------------------------------------------
+ * Unit tests for the guest draft helpers (UT-18). A small fake storage
+ * object stands in for window.sessionStorage, so the tests run without a
+ * browser. They check that a draft comes back once and only once, and
+ * that unknown tools, missing data, and corrupted JSON are thrown away.
+ *
+ * Source: Vitest API, describe/it/expect/beforeEach - https://vitest.dev/api/
+ * -----------------------------------------------------------------------
+ */
+
 import { describe, it, expect, beforeEach } from "vitest";
 import { savePendingDraft, takePendingDraft, PENDING_KEY } from "./pendingDraft.js";
 

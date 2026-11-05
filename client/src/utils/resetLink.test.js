@@ -1,3 +1,15 @@
+/**
+ * utils/resetLink.test.js
+ * -----------------------------------------------------------------------
+ * Unit tests for parseResetLink() (UT-17). They cover a valid recovery
+ * link, a hash with or without its leading #, the wrong token type, a
+ * missing token, an empty hash, and the two error forms Supabase sends
+ * for an expired or used link.
+ *
+ * Source: Vitest API, describe/it/expect - https://vitest.dev/api/
+ * -----------------------------------------------------------------------
+ */
+
 import { describe, it, expect } from "vitest";
 import { parseResetLink } from "./resetLink.js";
 

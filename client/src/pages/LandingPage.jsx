@@ -78,6 +78,7 @@ function useGridSnap() {
   return [ref, { transform: `translate(${offset.x}px, ${offset.y}px)` }];
 }
 
+/** The aliasing drawing beside the headline: a 3-cycle signal, its five samples, and the 1-cycle wave they wrongly suggest. */
 function AliasingFigure() {
   const width = 520;
   const height = 240;
@@ -188,6 +189,7 @@ const glyphs = {
   ),
 };
 
+/** One row in the "What is in it" list: an icon, the tool's name and description, and a link to try it. */
 function Tool({ glyph, name, to, children }) {
   return (
     <div className="flex gap-5 py-7 border-t border-rule">
@@ -211,6 +213,7 @@ function Tool({ glyph, name, to, children }) {
   );
 }
 
+/** The landing page: header, hero with the aliasing figure, the tool list, and the footer. */
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -218,6 +221,10 @@ export default function LandingPage() {
         <div className="mx-auto max-w-5xl px-6 h-16 flex items-center justify-between">
           <span className="font-semibold tracking-tight text-ink">EERoom</span>
           <nav className="flex items-center gap-6 text-sm">
+            {/* Hidden on phones to keep the bar on one line; the footer links it too. */}
+            <Link to="/portfolio" className="hidden sm:inline text-ink-muted hover:text-ink transition-colors">
+              About the project
+            </Link>
             <Link to="/login" className="text-ink-muted hover:text-ink transition-colors">
               Sign in
             </Link>
@@ -285,8 +292,11 @@ export default function LandingPage() {
       </main>
 
       <footer className="border-t border-rule">
-        <div className="mx-auto max-w-5xl px-6 py-8 text-sm text-ink-faint">
-          EERoom. Built for electrical engineering coursework.
+        <div className="mx-auto max-w-5xl px-6 py-8 text-sm text-ink-faint flex flex-wrap gap-x-6 gap-y-2 justify-between">
+          <span>EERoom. Built for electrical engineering coursework.</span>
+          <Link to="/portfolio" className="hover:text-ink">
+            Project portfolio
+          </Link>
         </div>
       </footer>
     </div>

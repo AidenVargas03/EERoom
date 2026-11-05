@@ -37,6 +37,7 @@ const TOOL_LABELS = {
   logic: "Logic Gate Sandbox",
 };
 
+/** Turns a database timestamp into a short readable date, e.g. "Oct 19, 2026". */
 function formatDate(timestamp) {
   if (!timestamp) return "unknown date";
   const date = new Date(timestamp);
@@ -58,6 +59,7 @@ function Readout({ label, value }) {
   );
 }
 
+/** Read-only view of a saved Ohm's Law project: the stored V, I, R, and P values. */
 function OhmView({ data }) {
   const show = (v, unit) =>
     typeof v === "number" && Number.isFinite(v) ? `${v.toFixed(4)} ${unit}` : "-";
@@ -72,6 +74,7 @@ function OhmView({ data }) {
   );
 }
 
+/** Read-only view of a saved waveform: redraws it with WaveformCanvas and shows its readouts and settings. */
 function WaveView({ data }) {
   const frequency = Number(data.frequency) || 0;
   const cycles = Number(data.cycles) || 1;
@@ -139,6 +142,7 @@ function WaveView({ data }) {
   );
 }
 
+/** Read-only view of a saved circuit: redraws the board and rebuilds the truth table with logicEvaluator. */
 function LogicView({ data }) {
   const circuit = {
     nodes: Array.isArray(data.nodes) ? data.nodes : [],
@@ -247,6 +251,7 @@ function LogicView({ data }) {
   );
 }
 
+/** Loads the shared project for the token in the URL and picks the matching view. */
 export default function SharedProjectPage() {
   const { token } = useParams();
   const [project, setProject] = useState(null);

@@ -1,56 +1,146 @@
 # EERoom
 
-Browser-based electrical engineering simulation platform.
-CST-452 Senior Project II, Milestone 4 (Coding and Testing, 2nd Code Iteration).
+Free browser-based electrical engineering simulation tools: an Ohm's Law and
+power calculator, a waveform visualizer that demonstrates aliasing, and a logic
+gate sandbox that builds the truth table as you wire.
 
-**Live site:** https://www.eeroom.io
+CST-451 and CST-452 Senior Capstone, Grand Canyon University, College of
+Engineering and Technology. Developer: Aiden Vargas. Instructor: Professor
+Thompson.
 
-## Repo structure
+| | |
+|---|---|
+| **Live application** | https://www.eeroom.io |
+| **Project portfolio** | https://www.eeroom.io/portfolio |
+| **Git repository** | https://github.com/AidenVargas03/EERoom |
+| **API** | https://eeroom-production.up.railway.app (health check: `/health`) |
+
+The repository is public so that the instructor, the mentor, and potential
+employers can read the code and its history without needing an invitation.
+
+## Features
+
+- **Ohm's Law and Power Calculator.** Enter any two of voltage, current, and
+  resistance; the third value and the power are calculated as you type, with
+  guards against division by zero.
+- **Waveform Visualizer.** Sine, square, sawtooth, and triangle signals with
+  amplitude, frequency, phase, and DC offset controls, RMS and peak-to-peak
+  readouts, and a sample rate control that overlays what that rate would record
+  and warns when the signal is aliased (below the Nyquist rate).
+- **Logic Gate Sandbox.** Seven gate types (AND, OR, NOT, NAND, NOR, XOR, XNOR)
+  placed on a grid and wired by click or drag. Live truth table, a Boolean
+  expression for each output, warnings for unconnected pins, and refusal of
+  feedback loops.
+- **Guest access.** Every tool works without an account. A guest who chooses to
+  save is asked to sign up or log in, and their work is saved to the account
+  automatically once they are in.
+- **Accounts and projects.** Email and password accounts, a dashboard of saved
+  projects, save and reopen in every tool, delete with confirmation.
+- **Password reset.** Forgot Password and Reset Password pages using Supabase's
+  recovery email.
+- **Sharing.** A read-only share link (64-character token) that anyone can open
+  without logging in.
+- **Tablet support and accessibility.** Every page works at 768 px and wider,
+  and text meets the WCAG 2.2 AA contrast ratio.
+
+## Technology
+
+| Layer | Technology | Host |
+|---|---|---|
+| Frontend | React 18, React Router 6, Vite 5, Tailwind CSS 3, Axios | Vercel |
+| Backend | Node.js, Express 4, jsonwebtoken, express-rate-limit | Railway |
+| Database and auth | PostgreSQL and Supabase Auth (bcrypt hashing) | Supabase |
+| Testing | Vitest 1.6 and Supertest 7 | Local |
+
+## Repository structure
 
 ```
-eeroom/
-├── client/     React 18 + Tailwind frontend (Vercel)
-└── server/     Node.js/Express backend (Railway) + Supabase (DB + Auth)
+EERoom/
+├── client/                React frontend (deployed to Vercel)
+│   ├── public/portfolio/  Screenshots used by the portfolio page
+│   └── src/
+│       ├── api/           Axios client and /projects calls
+│       ├── components/    Shared UI (ProtectedRoute, ShareButton, WaveformCanvas, GuestSavePrompt)
+│       ├── hooks/         useAuth context
+│       ├── pages/         One file per route
+│       └── utils/         Logic evaluator, waveform math, reset link and guest draft helpers, and their tests
+└── server/                Express API (deployed to Railway)
+    ├── config/            Supabase clients
+    ├── controllers/       Auth and project logic
+    ├── db/schema.sql      Database tables
+    ├── middleware/        JWT check
+    ├── routes/            Auth, projects, and share routes
+    ├── tests/             API tests and the in-memory Supabase stand-in
+    ├── app.js             Builds the Express app
+    └── index.js           Starts the server
 ```
 
-## Local setup
+## Running it locally
 
-**Backend**
+Requires Node.js 18 or later and a free Supabase project.
+
+**1. Database.** In Supabase, open the SQL Editor and run
+`server/db/schema.sql` to create the `users` and `projects` tables.
+
+**2. Backend**
 ```bash
 cd server
-cp .env.example .env   # fill in SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, JWT_SECRET
+cp .env.example .env    # then fill in the values described below
 npm install
 npm run dev             # http://localhost:4000
 ```
 
-**Frontend**
+**3. Frontend**
 ```bash
 cd client
 cp .env.example .env.local
 npm install
-npm run dev              # http://localhost:5173
+npm run dev             # http://localhost:5173
 ```
 
-**Tests**
+### Environment variables
+
+`server/.env`
+
+| Variable | Purpose |
+|---|---|
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase **secret** key (starts with `sb_secret_`) |
+| `JWT_SECRET` | Long random string used to sign EERoom's own login tokens |
+| `PORT` | Port for Express (Railway sets its own) |
+| `CLIENT_URL` | Comma separated list of origins allowed by CORS |
+| `PASSWORD_RESET_URL` | Page the reset email links to, e.g. `http://localhost:5173/reset-password` |
+
+`client/.env.local`
+
+| Variable | Purpose |
+|---|---|
+| `VITE_API_URL` | Base URL of the API, e.g. `http://localhost:4000` |
+
+`SUPABASE_SERVICE_ROLE_KEY` must be a secret key, not a publishable one. Row
+Level Security is on for both tables with no policies, so the server can only
+read and write because a secret key bypasses it. A publishable key connects
+without an error, then returns no rows and fails every write.
+
+The real `.env` files are excluded by `.gitignore`. Only the `.env.example`
+templates, which hold no secrets, are committed.
+
+## Testing
+
 ```bash
-cd client
-npm test                 # 68 unit tests (Vitest)
-npm run test:watch       # re-runs on save
+cd client && npm test     # 82 unit tests: logic evaluator, waveform math, reset link, guest drafts
+cd server && npm test     # 37 API tests through the real Express app
 ```
 
-**Database:** Supabase (PostgreSQL 15). Create a Supabase project, open the
-SQL Editor, and run `server/db/schema.sql` to create the `users` and
-`projects` tables. Then copy the project URL and secret key from Supabase ->
-Project Settings -> API Keys into `server/.env` (copy `.env.example` first).
-User accounts are managed by Supabase Auth. The `users` table mirrors each
-account's UUID so `projects.user_id` has a row to reference.
+The server tests use Supertest to send real HTTP requests through the routes,
+the JWT middleware, and the controllers. Only Supabase is replaced, by the
+in-memory stand-in in `server/tests/fakeSupabase.js`, so they run in seconds and
+never touch real data. They cover registration and its rollback, login,
+password reset, the rate limiter, every project route including ownership
+checks, and public share links.
 
-`SUPABASE_SERVICE_ROLE_KEY` must hold a **secret** key, the one that starts
-with `sb_secret_`. Do not use a publishable key. Row Level Security is turned
-on for both tables with no policies, so the server can only read and write
-because a secret key has the `BYPASSRLS` attribute. A publishable key will
-connect without complaining, then return no rows on every read and fail every
-write.
+Manual system test cases (MT-01 to MT-27) and their results are in the
+Milestone 5 Coding and Testing document.
 
 ## Deployment
 
@@ -60,103 +150,85 @@ write.
 | Backend | Railway | `server` | https://eeroom-production.up.railway.app |
 
 Both hosts deploy automatically when `main` is pushed. This is a monorepo, so
-each host needs its root directory set by hand. Without it the build looks for
-a `package.json` in the repo root and fails.
+each host needs its root directory set by hand; without it the build looks for a
+`package.json` in the repository root and fails.
 
-**Environment variables in production**
+- **Vercel** needs `VITE_API_URL` set to the Railway URL. Vite writes `VITE_*`
+  values into the bundle at build time, so a change only takes effect after a
+  new deploy.
+- **Railway** needs every variable in the `server/.env` table. `CLIENT_URL`
+  holds `https://www.eeroom.io`, `https://eeroom.io`, and
+  `https://eeroom.vercel.app`.
+- **Supabase** needs the Site URL set to `https://www.eeroom.io`, and
+  `https://www.eeroom.io/reset-password` (plus the localhost equivalent for
+  development) on the Redirect URLs list, or reset emails link to the wrong
+  place.
 
-- Vercel needs `VITE_API_URL`, set to the Railway URL. Vite writes `VITE_*`
-  values into the bundle when it builds, not when the page loads, so changing
-  this value only takes effect after a new deploy.
-- Railway needs `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`,
-  `PORT`, and `CLIENT_URL`. `CLIENT_URL` is a comma separated list of every
-  origin allowed to call the API, and the CORS setting reads it to decide
-  which sites may do so. It currently holds `https://www.eeroom.io`,
-  `https://eeroom.io` and `https://eeroom.vercel.app`. A single value was
-  enough before the custom domain existed. During a domain changeover both
-  the old and the new origin have to work at once, and with one value one of
-  them always fails. A rejected origin shows up in the browser as a request
-  that simply never returns, which is a confusing way to find out about a
-  configuration problem.
+**Why `client/vercel.json` exists.** The app uses `BrowserRouter`, and a
+production build only contains `index.html` and its assets. Opening
+`/share/<token>` or `/portfolio` directly would therefore return a 404. The
+rewrite in `vercel.json` sends every path to `index.html` so React Router can
+handle it, which is the fix Vercel documents for single page apps:
+https://vercel.com/docs/frameworks/frontend/vite. JSON allows no comments, so
+this file is documented here instead of in a header.
 
-**Rate limiting.** The three `/auth` routes allow ten requests per fifteen
-minutes per address. They are the only routes a stranger can reach, so an
-unlimited `/auth/login` would let someone guess passwords as fast as they
-could send requests. Express sits behind Railway's proxy, which is why
-`index.js` sets `trust proxy` to 1: without it the caller's real address is
-hidden behind the proxy's, every request lands in the same bucket, and ten
-failed logins from anybody would lock out everybody.
+## Security notes
 
-**Why `client/vercel.json` exists.** The app uses `BrowserRouter`. A
-production build only produces `index.html` and the asset files, so asking for
-`/share/<token>` or `/dashboard` asks for a file that is not there and gets a
-404. That would break every share link, because share links are opened by
-pasting a URL rather than by clicking through the app. The rewrite in
-`vercel.json` sends any unmatched path to `index.html` and lets React Router
-work out the route in the browser. This is the fix Vercel documents for single
-page apps: https://vercel.com/docs/frameworks/frontend/vite
+- Passwords are hashed by Supabase Auth (bcrypt); EERoom never stores them.
+- The API issues its own 24-hour JWT, checked by `requireAuth` on every
+  project route.
+- Every project query is filtered by the user ID from the verified token, so no
+  user can read, edit, delete, or share another user's project.
+- The `/auth` routes allow 10 requests per 15 minutes per address. `app.js` sets
+  `trust proxy` to 1 because Railway forwards requests through a proxy; without
+  it every user would share one rate limit bucket.
+- The password reset request gives the same answer for every email, so it
+  cannot reveal which addresses have accounts.
+- Share links return only a project's name, tool type, data, and date, never a
+  user ID.
 
-That file is the one exception to the header comment rule below. `vercel.json`
-has to be valid JSON, and JSON does not allow comments, so adding one would
-stop it parsing. It is documented here instead, and its `$schema` key names the
-format inside the file.
+## Source control practices
 
-## Build progress
+- All work is committed to `main` in small commits with descriptive messages,
+  and every push deploys, so the live site always matches the repository.
+- Each milestone's work can be followed through the commit history, from the
+  initial scaffolding to the final release.
+- Secrets are kept out of the repository with `.gitignore`, and installed
+  packages and build output are ignored.
 
-- [x] 1. Project scaffolding
-- [x] 2. Supabase project + schema
-- [x] 3. Auth: register/login/logout (tested end to end against the live
-      Supabase project)
-- [x] 4. Dashboard shell + project save/load/delete
-- [x] 5. Ohm's Law Calculator
-- [x] 6. Waveform Visualizer, including the live aliasing demonstration
-- [x] 7. Logic Gate Sandbox, with truth table and boolean expression
-- [x] 8. Share link functionality (backend routes and frontend UI)
-- [x] 9. Deploy to Vercel + Railway
-- [x] 10. Blueprint dark theme across every page, the landing page, and
-      drag-to-connect wiring with wire removal in the logic sandbox
-- [x] 11. Custom domain (www.eeroom.io) and rate limiting on the auth routes
-- [ ] 12. Milestone 4 write-up, the screencast, and the manual test run. The
-      68 client unit tests are written and passing.
+## Project status
 
-## Code documentation / citation policy (for Milestone 4's Source Code
-Listing requirement)
+| Iteration | Delivered |
+|---|---|
+| 1 (CST-451) | Scaffolding, authentication, Ohm's Law calculator |
+| 2 (Milestone 4) | Waveform and logic tools, dashboard, saving, sharing, deployment, custom domain, rate limiting, 68 unit tests |
+| 3 (Milestone 5) | Password reset, guest access, tablet layout and contrast, 37 API tests, 14 more unit tests |
+| Release (Milestone 6) | Project portfolio page, final documentation, and this README |
 
-Every file has a header comment describing its purpose. Where a chunk of
-code follows a specific external pattern (official docs, a library's
-recommended usage, or a Stack Overflow answer) rather than being original
-logic, there's an inline `// Source: <url>` comment marking exactly what
-was adapted and from where. Business logic that's my own design
-(e.g. Ohm's Law branching, boolean gate evaluation, project ownership
-checks) is not cited, since it isn't derived from an external source.
+Out of scope, with the reasons recorded in the Requirements Specification: the
+DC circuit simulator, Google sign-in, and paid Pro accounts.
 
-Files with an explicit source citation so far:
+## Code documentation and citations
 
-**Server**
-- `server/middleware/authMiddleware.js` - Bearer token parsing pattern (Stack Overflow)
-- `server/config/supabaseClient.js` - Supabase server-side client setup (official docs)
-- `server/controllers/projectController.js` - `crypto.randomBytes` share token generation (Node.js official docs)
-- `server/routes/authRoutes.js` - express-rate-limit usage and option names (the library's own proxy troubleshooting guide)
-- `server/index.js` - the Express `trust proxy` setting for a server behind a single reverse proxy (same guide)
+Every source file opens with a header comment that describes its purpose.
+Where code follows an external pattern (official documentation or a library's
+recommended usage) rather than being original logic, a `Source:` comment with a
+URL marks what was adapted and from where. Logic of the developer's own design,
+such as the Ohm's Law solve-for branching, the gate evaluator, and the
+ownership checks, is not cited.
 
-**Client, configuration**
-- `client/vite.config.js` - Vite's default React template scaffold (official docs)
-- `client/vercel.json` - SPA rewrite for client-side routing (Vercel official docs). Documented in the section above rather than in the file, because JSON allows no comments.
+Files with an external source citation:
 
-**Client, shared code**
-- `client/src/api/client.js` - axios interceptor pattern (official docs)
-- `client/src/hooks/useAuth.jsx` - React Context/Provider pattern (official React docs)
-- `client/src/components/ProtectedRoute.jsx` - a `children` guard that returns `<Navigate replace />`, adapted from React Router v6's official `examples/auth` (`RequireAuth`). The official version also passes `state={{ from: location }}` to send the user back to the page they first asked for. EERoom does not do that, so it is left out on purpose.
-- `client/src/components/ShareButton.jsx` - `Clipboard.writeText()` usage (MDN)
-- `client/src/components/WaveformCanvas.jsx` - correcting canvas resolution on high-DPI screens with `devicePixelRatio` (MDN)
-
-**Client, pages**
-- `client/src/pages/DashboardPage.jsx` - Effect cleanup flag, used to throw away a fetch that finishes after the component has gone (official React docs)
-- `client/src/pages/OhmToolPage.jsx` - `useSearchParams` for query-string state and `NavigateOptions` (official React Router docs), plus the same Effect cleanup flag (official React docs)
-- `client/src/pages/WaveToolPage.jsx` - `useSearchParams` for query-string state (official React Router docs), plus the same Effect cleanup flag (official React docs)
-- `client/src/pages/LogicToolPage.jsx` - `useSearchParams` for query-string state (official React Router docs), plus the same Effect cleanup flag (official React docs)
-- `client/src/pages/SharedProjectPage.jsx` - the same Effect cleanup flag (official React docs)
-
-**Client, tests**
-- `client/src/utils/waveform.test.js` - Vitest API, `describe`/`it`/`expect` (official docs)
-- `client/src/utils/logicEvaluator.test.js` - Vitest API, `describe`/`it`/`expect` (official docs)
+- **Server:** `config/supabaseClient.js`, `middleware/authMiddleware.js`,
+  `controllers/authController.js`, `controllers/projectController.js`,
+  `routes/authRoutes.js`, `app.js`, `tests/fakeSupabase.js`
+- **Client configuration:** `vite.config.js`, `postcss.config.js`,
+  `vercel.json` (documented in this README)
+- **Client shared code:** `api/client.js`, `hooks/useAuth.jsx`, `theme.js`,
+  `components/ProtectedRoute.jsx`, `components/ShareButton.jsx`,
+  `components/WaveformCanvas.jsx`, `utils/resetLink.js`,
+  `utils/pendingDraft.js`
+- **Client pages:** `DashboardPage.jsx`, `OhmToolPage.jsx`, `WaveToolPage.jsx`,
+  `LogicToolPage.jsx`, `SharedProjectPage.jsx`, `ResetPasswordPage.jsx`
+- **Tests:** `logicEvaluator.test.js`, `waveform.test.js`,
+  `resetLink.test.js`, `pendingDraft.test.js`
