@@ -57,7 +57,8 @@ employers can read the code and its history without needing an invitation.
 ```
 EERoom/
 ├── client/                React frontend (deployed to Vercel)
-│   ├── public/portfolio/  Screenshots used by the portfolio page
+│   ├── public/media/      Screenshots and diagrams for the portfolio page
+│   ├── public/docs/       Project documents (PDF) linked from the portfolio
 │   └── src/
 │       ├── api/           Axios client and /projects calls
 │       ├── components/    Shared UI (ProtectedRoute, ShareButton, WaveformCanvas, GuestSavePrompt)

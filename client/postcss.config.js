@@ -3,3 +3,9 @@
 // Autoprefixer (which adds browser prefixes) when Vite builds the CSS.
 // Source: Tailwind CSS installation guide for PostCSS -
 // https://v3.tailwindcss.com/docs/installation/using-postcss
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
